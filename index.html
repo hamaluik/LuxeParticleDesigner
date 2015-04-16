@@ -12,14 +12,14 @@
             p { color: #ffffff; width: 50%; margin: 0em auto 0 auto; text-align: center; font-family: sans-serif; }
         </style>
 
-        {{#each project.app.web.libs~}}
-            <script type="text/javascript" src="{{this}}"></script>
-        {{/each}}
+        <script type="text/javascript" src="./lib/modernizr.js"></script>
+        <script type="text/javascript" src="./lib/howler.js"></script>
+        
 
     </head>
 
     <body style="padding: 0; margin: 0; background-color: #111111;">
-        <script type="text/javascript" src="./{{project.app.name}}{{#if project.app.web.min}}.min{{/if}}.js"></script>
+        <script type="text/javascript" src="./LuxeParticleDesigner.js"></script>
     </body>
 
 </html>
