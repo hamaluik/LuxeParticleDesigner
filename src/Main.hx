@@ -16,6 +16,8 @@ class Main extends luxe.Game {
 	var sliders:Array<ParticlePropertyControl> = new Array<ParticlePropertyControl>();
 	var particles:ParticleSystem;
 	var emitter:ParticleEmitter;
+	var blend_src:Int;
+	var blend_dst:Int;
 
 	var startColour:ColorHSV = new ColorHSV(60, 1, 0.5, 1);
 	var endColour:ColorHSV = new ColorHSV(0, 1, 0.5, 0);
@@ -32,7 +34,7 @@ class Main extends luxe.Game {
 				parcel: parcel,
 				oncomplete: assetsLoaded
 			});
-			
+
 			// start loading!
 			parcel.load();
 		});
@@ -46,6 +48,7 @@ class Main extends luxe.Game {
 			start_size: new Vector(32, 32),
 			end_size: new Vector(8, 8),
 			gravity: new Vector(0, -90),
+			group: 5,
 			life: 0.9,
 			emit_time: 0.05,
 			start_color: startColour.toColor(),
@@ -53,6 +56,15 @@ class Main extends luxe.Game {
 		});
 		emitter = particles.get('prototyping');
 		particles.pos = Luxe.screen.mid;
+
+        Luxe.renderer.batcher.add_group(5,
+            function(b:phoenix.Batcher){
+                Luxe.renderer.blend_mode(blend_src, blend_dst);
+            },
+            function(b:phoenix.Batcher){
+                Luxe.renderer.blend_mode();
+            }
+        );
 
 		// setup the UI texture
 		var uiTexture:Texture = Luxe.resources.find_texture('assets/ui.png');
@@ -119,6 +131,8 @@ class Main extends luxe.Game {
 			endColour.a = _v;
 			emitter.end_color = endColour.toColor();
 		}));
+		sliders.push(new BlendModeControl("SRC", 4, function(_v:Float) { blend_src = Std.int(_v); }));
+		sliders.push(new BlendModeControl("DST", 1, function(_v:Float) { blend_dst = Std.int(_v); }));
 	} // assetsLoaded
 
 	override function onkeyup( e:KeyEvent ) {
