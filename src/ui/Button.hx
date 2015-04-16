@@ -19,6 +19,12 @@ import phoenix.geometry.TextureCoord;
 
 import ui.ButtonOptions;
 
+enum ButtonState {
+	NORMAL;
+	HOVERING;
+	PRESSING;
+}
+
 class Button extends Visual {
 	var _geometry:NineSlice;
 	var normalTexture:Texture;
@@ -31,6 +37,7 @@ class Button extends Visual {
 
 	var hovering:Bool = false;
 	var pressing:Bool = false;
+	var buttonState:ButtonState = ButtonState.NORMAL;
 	var bounds:Rectangle;
 
 	public function new(_options:ButtonOptions) {
@@ -85,24 +92,39 @@ class Button extends Visual {
 
 	override function onmousemove(e:MouseEvent) {
 		hovering = bounds.point_inside(e.pos);
-		if(hoverTexture != null) {
-			if(_geometry.texture != hoverTexture && hovering) {
-				_geometry.texture = hoverTexture;
-			}
-			else if(_geometry.texture != normalTexture && !hovering) {
-				_geometry.texture = normalTexture;
-				pressing = false;
-			}
-		}
+		updateState();
 	}
 
 	override function onmousedown(e:MouseEvent) {
 		if(hovering) pressing = true;
 		else pressing = false;
+		updateState();
 	}
 
 	override function onmouseup(e:MouseEvent) {
 		if(pressing) onclicked();
 		pressing = false;
+		updateState();
+	}
+
+	function updateState() {
+		if(pressing) {
+			buttonState = ButtonState.PRESSING;
+		}
+		else if(hovering) {
+			buttonState = ButtonState.HOVERING;
+		}
+		else {
+			buttonState = ButtonState.NORMAL;
+		}
+
+		switch(buttonState) {
+			case ButtonState.NORMAL:
+				if(_geometry.texture != normalTexture) _geometry.texture = normalTexture;
+			case ButtonState.HOVERING:
+				if(_geometry.texture != hoverTexture) _geometry.texture = hoverTexture;
+			case ButtonState.PRESSING:
+				if(_geometry.texture != pressedTexture) _geometry.texture = pressedTexture;
+		}
 	}
 }
