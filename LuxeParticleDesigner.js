@@ -13,12 +13,12 @@ var ParticlePropertyControl = function(name,min,max,initial,updateParticles) {
 	this.max = max;
 	this.initial = initial;
 	this.updateParticles = updateParticles;
-	this.title = new luxe.Text({ pos : new phoenix.Vector(ParticlePropertyControl.nextX,ParticlePropertyControl.nextY), align : 0, align_vertical : 3, text : name, color : new phoenix.Color(1,1,1,1), point_size : 12},{ fileName : "ParticlePropertyControl.hx", lineNumber : 33, className : "ParticlePropertyControl", methodName : "new"});
-	this.valueDisplay = new luxe.Text({ pos : new phoenix.Vector(ParticlePropertyControl.nextX + 134,ParticlePropertyControl.nextY + 25), align : 0, align_vertical : 2, text : "0", color : new phoenix.Color(1,1,1,1), point_size : 12},{ fileName : "ParticlePropertyControl.hx", lineNumber : 42, className : "ParticlePropertyControl", methodName : "new"});
-	this.slider = new ui.Slider({ texture : ParticlePropertyControl.uiTexture, pos : new phoenix.Vector(ParticlePropertyControl.nextX,ParticlePropertyControl.nextY + 26), size : new phoenix.Vector(128,8), leftCap : new phoenix.Rectangle(0,1,7,8), background : new phoenix.Rectangle(8,3,24,4), rightCap : new phoenix.Rectangle(33,1,4,8), handle : new phoenix.Rectangle(40,0,5,10), initialValue : (initial - min) / (max - min)});
+	this.title = new luxe.Text({ pos : new phoenix.Vector(ParticlePropertyControl.nextX,ParticlePropertyControl.nextY), align : 0, align_vertical : 3, text : name, color : new phoenix.Color(1,1,1,1), point_size : 8, font : ParticlePropertyControl.uiFont},{ fileName : "ParticlePropertyControl.hx", lineNumber : 35, className : "ParticlePropertyControl", methodName : "new"});
+	this.valueDisplay = new luxe.Text({ pos : new phoenix.Vector(ParticlePropertyControl.nextX + 134,ParticlePropertyControl.nextY + 17), align : 0, align_vertical : 2, text : "0", color : new phoenix.Color(1,1,1,1), point_size : 8, font : ParticlePropertyControl.uiFont},{ fileName : "ParticlePropertyControl.hx", lineNumber : 45, className : "ParticlePropertyControl", methodName : "new"});
+	this.slider = new ui.Slider({ texture : ParticlePropertyControl.uiTexture, pos : new phoenix.Vector(ParticlePropertyControl.nextX,ParticlePropertyControl.nextY + 18), size : new phoenix.Vector(128,8), leftCap : new phoenix.Rectangle(0,1,7,8), background : new phoenix.Rectangle(8,3,24,4), rightCap : new phoenix.Rectangle(33,1,4,8), handle : new phoenix.Rectangle(40,0,5,10), initialValue : (initial - min) / (max - min)});
 	this.slider.addValueEventListener($bind(this,this.valueChanged));
-	ParticlePropertyControl.nextY += 40;
-	if(ParticlePropertyControl.nextY >= Luxe.core.screen.h - 40) {
+	ParticlePropertyControl.nextY += 32;
+	if(ParticlePropertyControl.nextY >= Luxe.core.screen.h - 32) {
 		ParticlePropertyControl.nextY = 8;
 		ParticlePropertyControl.nextX = Luxe.core.screen.w - 172;
 	}
@@ -606,7 +606,7 @@ Main.prototype = $extend(luxe.Game.prototype,{
 	}
 	,assetsLoaded: function(_) {
 		var _g = this;
-		this.particles = new luxe.ParticleSystem({ name : "particles"},{ fileName : "Main.hx", lineNumber : 51, className : "Main", methodName : "assetsLoaded"});
+		this.particles = new luxe.ParticleSystem({ name : "particles"},{ fileName : "Main.hx", lineNumber : 55, className : "Main", methodName : "assetsLoaded"});
 		var template = { name : "prototyping", group : 5, emit_time : 0.05, emit_count : 1, direction : 0, direction_random : 0, speed : 0, speed_random : 0, end_speed : 0, life : 0.9, life_random : 0, rotation : 0, rotation_random : 0, end_rotation : 0, end_rotation_random : 0, rotation_offset : 0, pos_offset : new phoenix.Vector(0,0), pos_random : new phoenix.Vector(5,5), gravity : new phoenix.Vector(0,-90), start_size : new phoenix.Vector(32,32), start_size_random : new phoenix.Vector(0,0), end_size : new phoenix.Vector(8,8), end_size_random : new phoenix.Vector(0,0), start_color : this.startColour.toColor(), end_color : this.endColour.toColor()};
 		this.particles.add_emitter(template);
 		this.emitter = this.particles._components.get("prototyping",false);
@@ -617,6 +617,13 @@ Main.prototype = $extend(luxe.Game.prototype,{
 		},function(b1) {
 			Luxe.renderer.blend_mode();
 		});
+		this.uiFont = Luxe.resources.find_font("assets/Minecraftia.fnt");
+		var $it0 = this.uiFont.pages.iterator();
+		while( $it0.hasNext() ) {
+			var t = $it0.next();
+			t.set_filter(phoenix.FilterType.nearest);
+		}
+		ParticlePropertyControl.uiFont = this.uiFont;
 		var uiTexture = Luxe.resources.find_texture("assets/ui.png");
 		uiTexture.set_filter(phoenix.FilterType.nearest);
 		ParticlePropertyControl.uiTexture = uiTexture;
@@ -708,23 +715,31 @@ Main.prototype = $extend(luxe.Game.prototype,{
 			_g.startColour.set_h(_v28);
 			_g.emitter.start_color = _g.startColour.toColor();
 		}));
-		this.sliders.push(new ParticlePropertyControl("Start Alpha",0,1,this.startColour.a,function(_v29) {
-			_g.startColour.a = _v29;
+		this.sliders.push(new ParticlePropertyControl("Start Saturation",0,1,this.startColour.s,function(_v29) {
+			_g.startColour.set_s(_v29);
 			_g.emitter.start_color = _g.startColour.toColor();
 		}));
-		this.sliders.push(new ParticlePropertyControl("End Hue",0,360,this.endColour.h,function(_v30) {
-			_g.endColour.set_h(_v30);
+		this.sliders.push(new ParticlePropertyControl("Start Alpha",0,1,this.startColour.a,function(_v30) {
+			_g.startColour.a = _v30;
+			_g.emitter.start_color = _g.startColour.toColor();
+		}));
+		this.sliders.push(new ParticlePropertyControl("End Hue",0,360,this.endColour.h,function(_v31) {
+			_g.endColour.set_h(_v31);
 			_g.emitter.end_color = _g.endColour.toColor();
 		}));
-		this.sliders.push(new ParticlePropertyControl("End Alpha",0,1,this.endColour.a,function(_v31) {
-			_g.endColour.a = _v31;
+		this.sliders.push(new ParticlePropertyControl("End Saturation",0,1,this.endColour.s,function(_v32) {
+			_g.endColour.set_s(_v32);
+			_g.emitter.start_color = _g.startColour.toColor();
+		}));
+		this.sliders.push(new ParticlePropertyControl("End Alpha",0,1,this.endColour.a,function(_v33) {
+			_g.endColour.a = _v33;
 			_g.emitter.end_color = _g.endColour.toColor();
 		}));
-		this.sliders.push(new BlendModeControl("SRC",4,function(_v32) {
-			_g.blend_src = _v32 | 0;
+		this.sliders.push(new BlendModeControl("SRC",4,function(_v34) {
+			_g.blend_src = _v34 | 0;
 		}));
-		this.sliders.push(new BlendModeControl("DST",1,function(_v33) {
-			_g.blend_dst = _v33 | 0;
+		this.sliders.push(new BlendModeControl("DST",1,function(_v35) {
+			_g.blend_dst = _v35 | 0;
 		}));
 		var tex_btnNormal = Luxe.resources.find_texture("assets/btn_normal.png");
 		tex_btnNormal.set_filter(phoenix.FilterType.nearest);
@@ -732,8 +747,8 @@ Main.prototype = $extend(luxe.Game.prototype,{
 		tex_btnHover.set_filter(phoenix.FilterType.nearest);
 		var tex_btnPressed = Luxe.resources.find_texture("assets/btn_pressed.png");
 		tex_btnPressed.set_filter(phoenix.FilterType.nearest);
-		this.loadButton = new ui.Button({ normalTexture : tex_btnNormal, hoverTexture : tex_btnHover, pressedTexture : tex_btnPressed, onclicked : $bind(this,this.onLoadClicked), top : 8, left : 15, right : 16, bottom : 10, pos : new phoenix.Vector(Luxe.core.screen.get_mid().x,Luxe.core.screen.h - 80), text : new luxe.Text({ text : "Load (from JSON)", color : new phoenix.Color(1,1,1,1), point_size : 16},{ fileName : "Main.hx", lineNumber : 179, className : "Main", methodName : "assetsLoaded"})});
-		this.saveButton = new ui.Button({ normalTexture : tex_btnNormal, hoverTexture : tex_btnHover, pressedTexture : tex_btnPressed, onclicked : $bind(this,this.onSaveClicked), top : 8, left : 15, right : 16, bottom : 10, pos : new phoenix.Vector(Luxe.core.screen.get_mid().x,Luxe.core.screen.h - 32), text : new luxe.Text({ text : "Save (to JSON)", color : new phoenix.Color(1,1,1,1), point_size : 16},{ fileName : "Main.hx", lineNumber : 196, className : "Main", methodName : "assetsLoaded"})});
+		this.loadButton = new ui.Button({ normalTexture : tex_btnNormal, hoverTexture : tex_btnHover, pressedTexture : tex_btnPressed, onclicked : $bind(this,this.onLoadClicked), top : 8, left : 15, right : 16, bottom : 10, pos : new phoenix.Vector(Luxe.core.screen.get_mid().x,Luxe.core.screen.h - 80), text : new luxe.Text({ text : "Load (from JSON)", color : new phoenix.Color(1,1,1,1), point_size : 16, font : this.uiFont},{ fileName : "Main.hx", lineNumber : 198, className : "Main", methodName : "assetsLoaded"})});
+		this.saveButton = new ui.Button({ normalTexture : tex_btnNormal, hoverTexture : tex_btnHover, pressedTexture : tex_btnPressed, onclicked : $bind(this,this.onSaveClicked), top : 8, left : 15, right : 16, bottom : 10, pos : new phoenix.Vector(Luxe.core.screen.get_mid().x,Luxe.core.screen.h - 32), text : new luxe.Text({ text : "Save (to JSON)", color : new phoenix.Color(1,1,1,1), point_size : 16, font : this.uiFont},{ fileName : "Main.hx", lineNumber : 216, className : "Main", methodName : "assetsLoaded"})});
 	}
 	,onLoadClicked: function() {
 		window.alert("Sorry, this functionality isn't in yet!");
