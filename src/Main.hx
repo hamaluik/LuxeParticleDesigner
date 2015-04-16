@@ -5,6 +5,7 @@ import luxe.Particles;
 import luxe.Rectangle;
 import luxe.Sprite;
 import luxe.Vector;
+import phoenix.BitmapFont;
 import phoenix.Texture;
 import luxe.Parcel;
 import luxe.Text;
@@ -27,6 +28,9 @@ class Main extends luxe.Game {
 
 	var loadButton:Button;
 	var saveButton:Button;
+
+	var uiFont:BitmapFont;
+	var uiFont_2x:BitmapFont;
 
 	override function ready() {
 		// load the parcel
@@ -90,6 +94,13 @@ class Main extends luxe.Game {
             }
         );
 
+        // grab the font
+        uiFont = Luxe.resources.find_font("assets/Minecraftia.fnt");
+        for(t in uiFont.pages.iterator()) {
+        	t.filter = FilterType.nearest;
+        }
+        ParticlePropertyControl.uiFont = uiFont;
+
 		// setup the UI texture
 		var uiTexture:Texture = Luxe.resources.find_texture('assets/ui.png');
 		uiTexture.filter = FilterType.nearest;
@@ -142,6 +153,10 @@ class Main extends luxe.Game {
 			startColour.h = _v;
 			emitter.start_color = startColour.toColor();
 		}));
+		sliders.push(new ParticlePropertyControl("Start Saturation", 0, 1, startColour.s, function(_v:Float) {
+			startColour.s = _v;
+			emitter.start_color = startColour.toColor();
+		}));
 		sliders.push(new ParticlePropertyControl("Start Alpha", 0, 1, startColour.a, function(_v:Float) {
 			startColour.a = _v;
 			emitter.start_color = startColour.toColor();
@@ -150,6 +165,10 @@ class Main extends luxe.Game {
 		sliders.push(new ParticlePropertyControl("End Hue", 0, 360, endColour.h, function(_v:Float) {
 			endColour.h = _v;
 			emitter.end_color = endColour.toColor();
+		}));
+		sliders.push(new ParticlePropertyControl("End Saturation", 0, 1, endColour.s, function(_v:Float) {
+			endColour.s = _v;
+			emitter.start_color = startColour.toColor();
 		}));
 		sliders.push(new ParticlePropertyControl("End Alpha", 0, 1, endColour.a, function(_v:Float) {
 			endColour.a = _v;
@@ -179,7 +198,8 @@ class Main extends luxe.Game {
 			text: new Text({
 				text: "Load (from JSON)",
 				color: new Color(1, 1, 1, 1),
-				point_size: 16
+				point_size: 16,
+				font: uiFont
 			})
 		});
 
@@ -196,7 +216,8 @@ class Main extends luxe.Game {
 			text: new Text({
 				text: "Save (to JSON)",
 				color: new Color(1, 1, 1, 1),
-				point_size: 16
+				point_size: 16,
+				font: uiFont
 			})
 		});
 	} // assetsLoaded

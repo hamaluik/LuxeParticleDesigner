@@ -4,6 +4,7 @@ import luxe.Text;
 import luxe.Color;
 import luxe.Vector;
 import luxe.Rectangle;
+import phoenix.BitmapFont;
 import phoenix.Texture;
 import ui.Slider;
 using NumberFormat;
@@ -22,6 +23,7 @@ class ParticlePropertyControl {
 	static var nextX:Float = 8;
 	static var nextY:Float = 8;
 	public static var uiTexture:Texture;
+	public static var uiFont:BitmapFont;
 
 	public function new(name:String, min:Float, max:Float, initial:Float, updateParticles:Float->Void) {
 		this.name = name;
@@ -36,21 +38,23 @@ class ParticlePropertyControl {
 			align_vertical: TextAlign.top,
 			text: name,
 			color: new Color(1, 1, 1, 1),
-			point_size: 12
+			point_size: 8,
+			font: uiFont
 			});
 
 		valueDisplay = new Text({
-			pos: new Vector(nextX + 134, nextY + 25),
+			pos: new Vector(nextX + 134, nextY + 17),
 			align: TextAlign.left,
 			align_vertical: TextAlign.center,
 			text: '0',
 			color: new Color(1, 1, 1, 1),
-			point_size: 12
+			point_size: 8,
+			font: uiFont
 			});
 
 		slider = new Slider({
 			texture: uiTexture,
-			pos: new Vector(nextX, nextY + 26),
+			pos: new Vector(nextX, nextY + 18),
 			size: new Vector(128, 8),
 			leftCap: new Rectangle(0, 1, 7, 8),
 			background: new Rectangle(8, 3, 24, 4),
@@ -60,8 +64,8 @@ class ParticlePropertyControl {
 			});
 		slider.addValueEventListener(valueChanged);
 
-		nextY += 40;
-		if(nextY >= Luxe.screen.h - 40) {
+		nextY += 32;
+		if(nextY >= Luxe.screen.h - 32) {
 			nextY = 8;
 			nextX = Luxe.screen.w - 172;
 		}
