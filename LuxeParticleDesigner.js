@@ -736,6 +736,7 @@ Main.prototype = $extend(luxe.Game.prototype,{
 		this.saveButton = new ui.Button({ normalTexture : tex_btnNormal, hoverTexture : tex_btnHover, pressedTexture : tex_btnPressed, onclicked : $bind(this,this.onSaveClicked), top : 8, left : 15, right : 16, bottom : 10, pos : new phoenix.Vector(Luxe.core.screen.get_mid().x,Luxe.core.screen.h - 32), text : new luxe.Text({ text : "Save (to JSON)", color : new phoenix.Color(1,1,1,1), point_size : 16},{ fileName : "Main.hx", lineNumber : 196, className : "Main", methodName : "assetsLoaded"})});
 	}
 	,onLoadClicked: function() {
+		window.alert("Sorry, this functionality isn't in yet!");
 	}
 	,onSaveClicked: function() {
 		var template = { emit_time : this.emitter.emit_time, emit_count : this.emitter.emit_count, direction : this.emitter.direction, direction_random : this.emitter.direction_random, speed : this.emitter.speed, speed_random : this.emitter.speed_random, end_speed : this.emitter.end_speed, life : this.emitter.life, life_random : this.emitter.life_random, rotation : this.emitter.zrotation, rotation_random : this.emitter.rotation_random, end_rotation : this.emitter.end_rotation, end_rotation_random : this.emitter.end_rotation_random, rotation_offset : this.emitter.rotation_offset, pos_offset : this.emitter.pos_offset, pos_random : this.emitter.pos_random, gravity : this.emitter.gravity, start_size : this.emitter.start_size, start_size_random : this.emitter.start_size_random, end_size : this.emitter.end_size, end_size_random : this.emitter.end_size_random, start_color : this.emitter.start_color, end_color : this.emitter.end_color};
@@ -20364,13 +20365,24 @@ snow.types._Types.InputEventType_Impl_.__name__ = ["snow","types","_Types","Inpu
 snow.types._Types.FileEventType_Impl_ = function() { };
 snow.types._Types.FileEventType_Impl_.__name__ = ["snow","types","_Types","FileEventType_Impl_"];
 var ui = {};
+ui.ButtonState = { __ename__ : true, __constructs__ : ["NORMAL","HOVERING","PRESSING"] };
+ui.ButtonState.NORMAL = ["NORMAL",0];
+ui.ButtonState.NORMAL.toString = $estr;
+ui.ButtonState.NORMAL.__enum__ = ui.ButtonState;
+ui.ButtonState.HOVERING = ["HOVERING",1];
+ui.ButtonState.HOVERING.toString = $estr;
+ui.ButtonState.HOVERING.__enum__ = ui.ButtonState;
+ui.ButtonState.PRESSING = ["PRESSING",2];
+ui.ButtonState.PRESSING.toString = $estr;
+ui.ButtonState.PRESSING.__enum__ = ui.ButtonState;
 ui.Button = function(_options) {
+	this.buttonState = ui.ButtonState.NORMAL;
 	this.pressing = false;
 	this.hovering = false;
 	if(_options == null) throw "Need none-null options for slider!";
 	_options.no_geometry = true;
 	if(_options.batcher == null) _options.batcher = Luxe.renderer.batcher;
-	luxe.Visual.call(this,_options,{ fileName : "Button.hx", lineNumber : 50, className : "ui.Button", methodName : "new"});
+	luxe.Visual.call(this,_options,{ fileName : "Button.hx", lineNumber : 57, className : "ui.Button", methodName : "new"});
 	this.onclicked = _options.onclicked;
 	this.normalTexture = _options.normalTexture;
 	this.hoverTexture = _options.hoverTexture;
@@ -20392,19 +20404,31 @@ ui.Button.__super__ = luxe.Visual;
 ui.Button.prototype = $extend(luxe.Visual.prototype,{
 	onmousemove: function(e) {
 		this.hovering = this.bounds.point_inside(e.pos);
-		if(this.hoverTexture != null) {
-			if(this._geometry.texture != this.hoverTexture && this.hovering) this._geometry.set_texture(this.hoverTexture); else if(this._geometry.texture != this.normalTexture && !this.hovering) {
-				this._geometry.set_texture(this.normalTexture);
-				this.pressing = false;
-			}
-		}
+		this.updateState();
 	}
 	,onmousedown: function(e) {
 		if(this.hovering) this.pressing = true; else this.pressing = false;
+		this.updateState();
 	}
 	,onmouseup: function(e) {
 		if(this.pressing) this.onclicked();
 		this.pressing = false;
+		this.updateState();
+	}
+	,updateState: function() {
+		if(this.pressing) this.buttonState = ui.ButtonState.PRESSING; else if(this.hovering) this.buttonState = ui.ButtonState.HOVERING; else this.buttonState = ui.ButtonState.NORMAL;
+		var _g = this.buttonState;
+		switch(_g[1]) {
+		case 0:
+			if(this._geometry.texture != this.normalTexture) this._geometry.set_texture(this.normalTexture);
+			break;
+		case 1:
+			if(this._geometry.texture != this.hoverTexture) this._geometry.set_texture(this.hoverTexture);
+			break;
+		case 2:
+			if(this._geometry.texture != this.pressedTexture) this._geometry.set_texture(this.pressedTexture);
+			break;
+		}
 	}
 	,init: function() {
 		this._listen(17,$bind(this,this.onmousemove),true);
