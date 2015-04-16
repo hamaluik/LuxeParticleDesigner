@@ -6,6 +6,67 @@ function $extend(from, fields) {
 	if( fields.toString !== Object.prototype.toString ) proto.toString = fields.toString;
 	return proto;
 }
+var ParticlePropertyControl = function(name,min,max,initial,updateParticles) {
+	this.name = "";
+	this.name = name;
+	this.min = min;
+	this.max = max;
+	this.initial = initial;
+	this.updateParticles = updateParticles;
+	this.title = new luxe_Text({ pos : new phoenix_Vector(ParticlePropertyControl.nextX,ParticlePropertyControl.nextY), align : 0, align_vertical : 3, text : name, color : new phoenix_Color(1,1,1,1), point_size : 12},{ fileName : "ParticlePropertyControl.hx", lineNumber : 33, className : "ParticlePropertyControl", methodName : "new"});
+	this.valueDisplay = new luxe_Text({ pos : new phoenix_Vector(ParticlePropertyControl.nextX + 134,ParticlePropertyControl.nextY + 25), align : 0, align_vertical : 2, text : "0", color : new phoenix_Color(1,1,1,1), point_size : 12},{ fileName : "ParticlePropertyControl.hx", lineNumber : 42, className : "ParticlePropertyControl", methodName : "new"});
+	this.slider = new ui_Slider({ texture : ParticlePropertyControl.uiTexture, pos : new phoenix_Vector(ParticlePropertyControl.nextX,ParticlePropertyControl.nextY + 26), size : new phoenix_Vector(128,8), leftCap : new phoenix_Rectangle(0,1,7,8), background : new phoenix_Rectangle(8,3,24,4), rightCap : new phoenix_Rectangle(33,1,4,8), handle : new phoenix_Rectangle(40,0,5,10), initialValue : (initial - min) / (max - min)});
+	this.slider.addValueEventListener($bind(this,this.valueChanged));
+	ParticlePropertyControl.nextY += 40;
+	if(ParticlePropertyControl.nextY >= Luxe.core.screen.h - 40) {
+		ParticlePropertyControl.nextY = 8;
+		ParticlePropertyControl.nextX = Luxe.core.screen.w - 172;
+	}
+};
+ParticlePropertyControl.__name__ = ["ParticlePropertyControl"];
+ParticlePropertyControl.prototype = {
+	valueChanged: function(_v) {
+		_v = _v * (this.max - this.min) + this.min;
+		this.valueDisplay.set_text(NumberFormat.toFixed(_v,2));
+		try {
+			this.updateParticles(_v);
+		} catch( e ) {
+			if (e instanceof js__$Boot_HaxeError) e = e.val;
+		}
+	}
+	,__class__: ParticlePropertyControl
+};
+var BlendModeControl = function(name,initial_index,updateParticles) {
+	this._blend_modes_array = [];
+	this._blend_modes_array.push({ name : "zero", value : 0});
+	this._blend_modes_array.push({ name : "one", value : 1});
+	this._blend_modes_array.push({ name : "src_color", value : 768});
+	this._blend_modes_array.push({ name : "one_minus_src_color", value : 769});
+	this._blend_modes_array.push({ name : "src_alpha", value : 770});
+	this._blend_modes_array.push({ name : "one_minus_src_alpha", value : 771});
+	this._blend_modes_array.push({ name : "dst_alpha", value : 772});
+	this._blend_modes_array.push({ name : "one_minus_dst_alpha", value : 773});
+	this._blend_modes_array.push({ name : "dst_color", value : 774});
+	this._blend_modes_array.push({ name : "one_minus_dst_color", value : 775});
+	this._blend_modes_array.push({ name : "src_alpha_saturate", value : 776});
+	ParticlePropertyControl.call(this,name,0,this._blend_modes_array.length - 1,initial_index,updateParticles);
+	this.valueDisplay.set_text(name);
+};
+BlendModeControl.__name__ = ["BlendModeControl"];
+BlendModeControl.__super__ = ParticlePropertyControl;
+BlendModeControl.prototype = $extend(ParticlePropertyControl.prototype,{
+	valueChanged: function(_v) {
+		_v = _v * (this.max - this.min) + this.min;
+		var val = this._blend_modes_array[_v | 0];
+		this.title.set_text(val.name);
+		try {
+			this.updateParticles(val.value);
+		} catch( e ) {
+			if (e instanceof js__$Boot_HaxeError) e = e.val;
+		}
+	}
+	,__class__: BlendModeControl
+});
 var DigitalCircleParcelProgress = function(_options) {
 	this.ticks = [];
 	this.options = _options;
@@ -557,10 +618,15 @@ Main.prototype = $extend(luxe_Game.prototype,{
 	}
 	,assetsLoaded: function(_) {
 		var _g = this;
-		this.particles = new luxe_ParticleSystem({ name : "particles"},{ fileName : "Main.hx", lineNumber : 43, className : "Main", methodName : "assetsLoaded"});
-		this.particles.add_emitter({ name : "prototyping", start_size : new phoenix_Vector(32,32), end_size : new phoenix_Vector(8,8), gravity : new phoenix_Vector(0,-90), life : 0.9, emit_time : 0.05, start_color : this.startColour.toColor(), end_color : this.endColour.toColor()});
+		this.particles = new luxe_ParticleSystem({ name : "particles"},{ fileName : "Main.hx", lineNumber : 45, className : "Main", methodName : "assetsLoaded"});
+		this.particles.add_emitter({ name : "prototyping", start_size : new phoenix_Vector(32,32), end_size : new phoenix_Vector(8,8), gravity : new phoenix_Vector(0,-90), group : 5, life : 0.9, emit_time : 0.05, start_color : this.startColour.toColor(), end_color : this.endColour.toColor()});
 		this.emitter = this.particles._components.get("prototyping",false);
 		this.particles.set_pos(Luxe.core.screen.get_mid());
+		Luxe.renderer.batcher.add_group(5,function(b) {
+			Luxe.renderer.blend_mode(_g.blend_src,_g.blend_dst);
+		},function(b1) {
+			Luxe.renderer.blend_mode();
+		});
 		var uiTexture = Luxe.resources.find_texture("assets/ui.png");
 		uiTexture.set_filter(phoenix_FilterType.nearest);
 		ParticlePropertyControl.uiTexture = uiTexture;
@@ -664,6 +730,12 @@ Main.prototype = $extend(luxe_Game.prototype,{
 			_g.endColour.a = _v31;
 			_g.emitter.end_color = _g.endColour.toColor();
 		}));
+		this.sliders.push(new BlendModeControl("SRC",4,function(_v32) {
+			_g.blend_src = _v32 | 0;
+		}));
+		this.sliders.push(new BlendModeControl("DST",1,function(_v33) {
+			_g.blend_dst = _v33 | 0;
+		}));
 	}
 	,onkeyup: function(e) {
 		if(e.keycode == snow_system_input_Keycodes.escape) Luxe.shutdown();
@@ -707,36 +779,6 @@ NumberFormat.exp = function(a,n) {
 		} else a *= a;
 	}
 	return r;
-};
-var ParticlePropertyControl = function(name,min,max,initial,updateParticles) {
-	this.name = "";
-	this.name = name;
-	this.min = min;
-	this.max = max;
-	this.initial = initial;
-	this.updateParticles = updateParticles;
-	this.title = new luxe_Text({ pos : new phoenix_Vector(ParticlePropertyControl.nextX,ParticlePropertyControl.nextY), align : 0, align_vertical : 3, text : name, color : new phoenix_Color(1,1,1,1), point_size : 12},{ fileName : "ParticlePropertyControl.hx", lineNumber : 33, className : "ParticlePropertyControl", methodName : "new"});
-	this.valueDisplay = new luxe_Text({ pos : new phoenix_Vector(ParticlePropertyControl.nextX + 134,ParticlePropertyControl.nextY + 25), align : 0, align_vertical : 2, text : "0", color : new phoenix_Color(1,1,1,1), point_size : 12},{ fileName : "ParticlePropertyControl.hx", lineNumber : 42, className : "ParticlePropertyControl", methodName : "new"});
-	this.slider = new ui_Slider({ texture : ParticlePropertyControl.uiTexture, pos : new phoenix_Vector(ParticlePropertyControl.nextX,ParticlePropertyControl.nextY + 26), size : new phoenix_Vector(128,8), leftCap : new phoenix_Rectangle(0,1,7,8), background : new phoenix_Rectangle(8,3,24,4), rightCap : new phoenix_Rectangle(33,1,4,8), handle : new phoenix_Rectangle(40,0,5,10), initialValue : (initial - min) / (max - min)});
-	this.slider.addValueEventListener($bind(this,this.valueChanged));
-	ParticlePropertyControl.nextY += 40;
-	if(ParticlePropertyControl.nextY >= Luxe.core.screen.h - 40) {
-		ParticlePropertyControl.nextY = 8;
-		ParticlePropertyControl.nextX = Luxe.core.screen.w - 172;
-	}
-};
-ParticlePropertyControl.__name__ = ["ParticlePropertyControl"];
-ParticlePropertyControl.prototype = {
-	valueChanged: function(_v) {
-		_v = _v * (this.max - this.min) + this.min;
-		this.valueDisplay.set_text(NumberFormat.toFixed(_v,2));
-		try {
-			this.updateParticles(_v);
-		} catch( e ) {
-			if (e instanceof js__$Boot_HaxeError) e = e.val;
-		}
-	}
-	,__class__: ParticlePropertyControl
 };
 var Reflect = function() { };
 Reflect.__name__ = ["Reflect"];
@@ -20688,10 +20730,10 @@ var ArrayBuffer = typeof(window) != "undefined" && window.ArrayBuffer || typeof(
 if(ArrayBuffer.prototype.slice == null) ArrayBuffer.prototype.slice = js_html_compat_ArrayBuffer.sliceImpl;
 var DataView = typeof(window) != "undefined" && window.DataView || typeof(global) != "undefined" && global.DataView || js_html_compat_DataView;
 var Uint8Array = typeof(window) != "undefined" && window.Uint8Array || typeof(global) != "undefined" && global.Uint8Array || js_html_compat_Uint8Array._new;
-Luxe.version = "dev";
-Luxe.build = "+c23809b46b";
 ParticlePropertyControl.nextX = 8;
 ParticlePropertyControl.nextY = 8;
+Luxe.version = "dev";
+Luxe.build = "+c23809b46b";
 haxe_crypto_Base64.CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 haxe_crypto_Base64.BYTES = haxe_io_Bytes.ofString(haxe_crypto_Base64.CHARS);
 haxe_ds_ObjectMap.count = 0;
