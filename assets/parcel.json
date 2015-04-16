@@ -1,5 +1,8 @@
 {
     "textures" : [
-        { "id" : "assets/ui.png" }
+        { "id" : "assets/ui.png" },
+        { "id" : "assets/btn_normal.png" },
+        { "id" : "assets/btn_hover.png" },
+        { "id" : "assets/btn_pressed.png" }
     ]
 }
