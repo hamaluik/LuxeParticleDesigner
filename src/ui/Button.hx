@@ -57,6 +57,9 @@ class Button extends Visual {
 		hoverTexture = _options.hoverTexture;
 		pressedTexture = _options.pressedTexture;
 
+		// autosize the button to fully encompass the text
+		size = _options.text.font.dimensions_of(_options.text.text, _options.text.point_size, size).add_xyz(16, 16);
+
 		// create the geometry
 		pos.add_xyz(size.x / -2, size.y / -2);
 		_geometry = new NineSlice({

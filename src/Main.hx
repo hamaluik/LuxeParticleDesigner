@@ -25,6 +25,7 @@ class Main extends luxe.Game {
 	var startColour:ColorHSV = new ColorHSV(60, 1, 0.5, 1);
 	var endColour:ColorHSV = new ColorHSV(0, 1, 0.5, 0);
 
+	var loadButton:Button;
 	var saveButton:Button;
 
 	override function ready() {
@@ -165,6 +166,23 @@ class Main extends luxe.Game {
 		var tex_btnPressed:Texture = Luxe.resources.find_texture('assets/btn_pressed.png');
 		tex_btnPressed.filter = FilterType.nearest;
 
+		loadButton = new Button({
+			normalTexture: tex_btnNormal,
+			hoverTexture: tex_btnHover,
+			pressedTexture: tex_btnPressed,
+			onclicked: onLoadClicked,
+			top: 8,
+			left: 15,
+			right: 16,
+			bottom: 10,
+			pos: new Vector(Luxe.screen.mid.x, Luxe.screen.h - 80),
+			text: new Text({
+				text: "Load (from JSON)",
+				color: new Color(1, 1, 1, 1),
+				point_size: 16
+			})
+		});
+
 		saveButton = new Button({
 			normalTexture: tex_btnNormal,
 			hoverTexture: tex_btnHover,
@@ -175,14 +193,17 @@ class Main extends luxe.Game {
 			right: 16,
 			bottom: 10,
 			pos: new Vector(Luxe.screen.mid.x, Luxe.screen.h - 32),
-			size: new Vector(80, 32),
 			text: new Text({
-				text: "To JSON!",
+				text: "Save (to JSON)",
 				color: new Color(1, 1, 1, 1),
 				point_size: 16
 			})
 		});
 	} // assetsLoaded
+
+	function onLoadClicked() {
+		untyped window.alert("Sorry, this functionality isn't in yet!");
+	}
 
 	function onSaveClicked() {
 		// grab the emitter info and store it in a template
