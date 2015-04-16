@@ -42,7 +42,6 @@ class Slider extends Visual {
 
 		// we'll handle these for ourselves, thank-you-very-much
 		_options.no_geometry = true;
-		//_options.no_scene = true;
 
 		// make sure it has a batcher
 		if(_options.batcher == null) {
