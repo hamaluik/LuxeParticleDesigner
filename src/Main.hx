@@ -224,17 +224,7 @@ class Main extends luxe.Game {
 
 	function onLoadClicked() {
 		
-		var info:String = "Sorry, this functionality isn't in yet!";
-
-#if web
-
-		untyped window.alert(info);
-
-#elseif desktop
-
-		trace(info);
-
-#end
+		Luxe.snow.window.simple_message("Sorry, this functionality isn't in yet!", "TODO");
 
 	}
 
