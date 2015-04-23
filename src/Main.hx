@@ -223,7 +223,19 @@ class Main extends luxe.Game {
 	} // assetsLoaded
 
 	function onLoadClicked() {
-		untyped window.alert("Sorry, this functionality isn't in yet!");
+		
+		var info:String = "Sorry, this functionality isn't in yet!";
+
+#if web
+
+		untyped window.alert(info);
+
+#elseif desktop
+
+		trace(info);
+
+#end
+
 	}
 
 	function onSaveClicked() {
@@ -254,7 +266,21 @@ class Main extends luxe.Game {
 			end_color: emitter.end_color
 		};
 
-		untyped openWindow(haxe.Json.stringify(template));
+		var json = haxe.Json.stringify(template, null, '    ');
+
+#if web
+
+		untyped openWindow(json);
+
+#elseif desktop
+
+		// Get the path where to save file
+		var path = Luxe.snow.io.module.dialog_save('Save particle file', {extension:'json'});
+
+		// Save it
+		sys.io.File.saveContent(path, json);
+
+#end
 	} // onSaveClicked
 
 } //Main
