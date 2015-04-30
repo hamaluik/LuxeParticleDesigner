@@ -54,8 +54,19 @@ class Main extends luxe.Game {
 	} //ready
 
 	function assetsLoaded(_) {
+
+		initParticleSystem();
+		initBatchers();
+		initUI();
+		initSliders();
+		initButtons();
+
+	} // assetsLoaded
+
+	function initParticleSystem(){
 		// create the particle system
 		particles = new ParticleSystem({name: 'particles'});
+
 		var template:ParticleEmitterOptions = {
 			name: 'prototyping',
 			group: 5,
@@ -87,27 +98,55 @@ class Main extends luxe.Game {
 		emitter = particles.get('prototyping');
 		emitter.init();
 		particles.pos = Luxe.screen.mid;
+	}
 
-        Luxe.renderer.batcher.add_group(5,
-            function(b:phoenix.Batcher) {
-                Luxe.renderer.blend_mode(blend_src, blend_dst);
-            },
-            function(b:phoenix.Batcher) {
-                Luxe.renderer.blend_mode();
-            }
-        );
+	function reloadParticleSystem(loadedOptions:ParticleEmitterOptions){
 
-        // grab the font
-        uiFont = Luxe.resources.font('assets/Minecraftia.fnt');
-        for(t in uiFont.pages.iterator()) {
-        	t.filter_min = t.filter_mag = FilterType.nearest;
-        }
-        ParticlePropertyControl.uiFont = uiFont;
+		// Clear
+		particles.emitters.remove('prototyping');
+		emitter.kill();
+		emitter = null;
 
-		// setup the UI texture
+		// No way of changing name so lets keep it constant for a while
+		loadedOptions.name = 'prototyping';
+
+		particles.add_emitter(loadedOptions);
+
+		emitter = particles.get('prototyping');
+		emitter.init();
+	}
+
+	function initBatchers(){
+
+		Luxe.renderer.batcher.add_group(5,
+			function(b:phoenix.Batcher) {
+				Luxe.renderer.blend_mode(blend_src, blend_dst);
+			},
+			function(b:phoenix.Batcher) {
+				Luxe.renderer.blend_mode();
+			}
+		);
+
+	}
+
+	function initUI(){
+
+		// Grab the font
+		uiFont = Luxe.resources.font('assets/Minecraftia.fnt');
+		for(t in uiFont.pages.iterator()) {
+			t.filter_min = t.filter_mag = FilterType.nearest;
+		}
+		ParticlePropertyControl.uiFont = uiFont;
+
+		// Setup the UI texture
 		var uiTexture:Texture = Luxe.resources.texture('assets/ui.png');
 		uiTexture.filter_min = uiTexture.filter_mag = FilterType.nearest;
 		ParticlePropertyControl.uiTexture = uiTexture;
+
+
+	}
+
+	function initSliders(){
 
 		// create a bunch of sliders for the different properties
 		sliders.push(new ParticlePropertyControl("Emit Time", 0, 1, emitter.emit_time, function(_v:Float) { emitter.emit_time = _v; }));
@@ -179,6 +218,9 @@ class Main extends luxe.Game {
 		}));
 		sliders.push(new BlendModeControl("SRC", 4, function(_v:Float) { blend_src = Std.int(_v); }));
 		sliders.push(new BlendModeControl("DST", 1, function(_v:Float) { blend_dst = Std.int(_v); }));
+	}
+
+	function initButtons() {
 
 		// create a button to save
 		var tex_btnNormal:Texture = Luxe.resources.texture('assets/btn_normal.png');
@@ -223,17 +265,63 @@ class Main extends luxe.Game {
 				font: uiFont
 			})
 		});
-	} // assetsLoaded
+	}
 
 	function onLoadClicked() {
 		
+#if desktop
+		// Get the path where to save file
+		var path = Luxe.snow.io.module.dialog_open('Open particle file', [{extension:'json', desc:'JSON'}]);
+
+		if(path.length <= 0) return;
+
+		// Save it
+		var content = sys.io.File.getContent(path);
+
+		var json = haxe.Json.parse(content);
+
+		// grab loaded particle values
+		var loaded:ParticleEmitterOptions = {
+			emit_time: json.emit_time,
+			emit_count: json.emit_count,
+			direction: json.direction,
+			direction_random: json.direction_random,
+			speed: json.speed,
+			speed_random: json.speed_random,
+			end_speed: json.end_speed,
+			life: json.life,
+			life_random: json.life_random,
+			rotation: json.zrotation,
+			rotation_random: json.rotation_random,
+			end_rotation: json.end_rotation,
+			end_rotation_random: json.end_rotation_random,
+			rotation_offset: json.rotation_offset,
+			pos_offset: new Vector(json.pos_offset.x, json.pos_offset.y),
+			pos_random: new Vector(json.pos_random.x, json.pos_random.y),
+			gravity: new Vector(json.gravity.x, json.gravity.y),
+			start_size: new Vector(json.start_size.x, json.start_size.y),
+			start_size_random: new Vector(json.start_size_random.x, json.start_size_random.y),
+			end_size: new Vector(json.end_size.x, json.end_size.y),
+			end_size_random: new Vector(json.end_size_random.x, json.end_size_random.y),
+			start_color: new Color(json.start_color.r, json.start_color.g, json.start_color.b, json.start_color.a),
+			end_color: new Color(json.end_color.r, json.end_color.g, json.end_color.b, json.end_color.a)
+		};
+		// TODO: Also grab blend modes
+		// blend_src = json.blend_src;
+		// blend_dst = json.blend_dst;
+
+		reloadParticleSystem(loaded);
+
+		
+#else
 		Luxe.snow.window.simple_message("Sorry, this functionality isn't in yet!", "TODO");
+#end
 
 	}
 
 	function onSaveClicked() {
 		// grab the emitter info and store it in a template
-		var template:ParticleEmitterOptions = {
+		var template:Dynamic = {
 			emit_time: emitter.emit_time,
 			emit_count: emitter.emit_count,
 			direction: emitter.direction,
@@ -256,10 +344,12 @@ class Main extends luxe.Game {
 			end_size: emitter.end_size,
 			end_size_random: emitter.end_size_random,
 			start_color: emitter.start_color,
-			end_color: emitter.end_color
+			end_color: emitter.end_color,
+			blend_src: blend_src,
+			blend_dst: blend_dst
 		};
 
-		var json = haxe.Json.stringify(template, null, '    ');
+		var json = haxe.Json.stringify(template, null, '	');
 
 #if web
 
@@ -269,6 +359,8 @@ class Main extends luxe.Game {
 
 		// Get the path where to save file
 		var path = Luxe.snow.io.module.dialog_save('Save particle file', {extension:'json'});
+
+		if(path.length <= 0) return;
 
 		// Save it
 		sys.io.File.saveContent(path, json);
