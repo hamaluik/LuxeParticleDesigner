@@ -55,12 +55,12 @@ class DigitalCircleParcelProgress {
     	});
 
 		// intercept the oncomplete and onprogress callbacks
-		options.parcel.options.oncomplete = oncomplete;
-		options.parcel.options.onprogress = onprogress;
+		options.parcel.on(ParcelEvent.complete, oncomplete);
+		options.parcel.on(ParcelEvent.progress, onprogress);
 	}
 
 	public function onprogress(r:Resource) {
-		var amount = options.parcel.current_count / options.parcel.total_items;
+		var amount = options.parcel.loaded.length / options.parcel.length;
 		for(i in 0...20) {
 			if(amount >= (i / 20)) {
 				ticks[i].color = options.bar;

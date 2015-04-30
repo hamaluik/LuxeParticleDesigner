@@ -10,6 +10,7 @@ import phoenix.Texture;
 import luxe.Parcel;
 import luxe.Text;
 import luxe.options.ParticleOptions;
+import luxe.resource.Resource;
 
 import ui.Slider;
 import ui.SliderOptions;
@@ -34,15 +35,17 @@ class Main extends luxe.Game {
 
 	override function ready() {
 		// load the parcel
-		Luxe.loadJSON("assets/parcel.json", function(jsonParcel) {
+		var load = Luxe.resources.load_json('assets/parcel.json');
+
+		load.then(function(json:JSONResource){
 			var parcel = new Parcel();
-			parcel.from_json(jsonParcel.json);
+			parcel.from_json(json.asset.json);
 
 			// show a loading bar
 			// use a fancy custom loading bar (https://github.com/FuzzyWuzzie/CustomLuxePreloader)
 			new DigitalCircleParcelProgress({
 				parcel: parcel,
-				oncomplete: assetsLoaded
+				oncomplete: assetsLoaded,
 			});
 
 			// start loading!
@@ -95,15 +98,15 @@ class Main extends luxe.Game {
         );
 
         // grab the font
-        uiFont = Luxe.resources.find_font("assets/Minecraftia.fnt");
+        uiFont = Luxe.resources.font('assets/Minecraftia.fnt');
         for(t in uiFont.pages.iterator()) {
-        	t.filter = FilterType.nearest;
+        	t.filter_min = t.filter_mag = FilterType.nearest;
         }
         ParticlePropertyControl.uiFont = uiFont;
 
 		// setup the UI texture
-		var uiTexture:Texture = Luxe.resources.find_texture('assets/ui.png');
-		uiTexture.filter = FilterType.nearest;
+		var uiTexture:Texture = Luxe.resources.texture('assets/ui.png');
+		uiTexture.filter_min = uiTexture.filter_mag = FilterType.nearest;
 		ParticlePropertyControl.uiTexture = uiTexture;
 
 		// create a bunch of sliders for the different properties
@@ -178,12 +181,12 @@ class Main extends luxe.Game {
 		sliders.push(new BlendModeControl("DST", 1, function(_v:Float) { blend_dst = Std.int(_v); }));
 
 		// create a button to save
-		var tex_btnNormal:Texture = Luxe.resources.find_texture('assets/btn_normal.png');
-		tex_btnNormal.filter = FilterType.nearest;
-		var tex_btnHover:Texture = Luxe.resources.find_texture('assets/btn_hover.png');
-		tex_btnHover.filter = FilterType.nearest;
-		var tex_btnPressed:Texture = Luxe.resources.find_texture('assets/btn_pressed.png');
-		tex_btnPressed.filter = FilterType.nearest;
+		var tex_btnNormal:Texture = Luxe.resources.texture('assets/btn_normal.png');
+		tex_btnNormal.filter_mag = tex_btnNormal.filter_min = FilterType.nearest;
+		var tex_btnHover:Texture = Luxe.resources.texture('assets/btn_hover.png');
+		tex_btnHover.filter_mag = tex_btnHover.filter_min = FilterType.nearest;
+		var tex_btnPressed:Texture = Luxe.resources.texture('assets/btn_pressed.png');
+		tex_btnPressed.filter_mag = tex_btnPressed.filter_min = FilterType.nearest;
 
 		loadButton = new Button({
 			normalTexture: tex_btnNormal,
