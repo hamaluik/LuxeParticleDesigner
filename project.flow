@@ -1,19 +1,18 @@
 {
-
   luxe:{
     window: {
       width:700,
       height:700,
       title:'Particle Designer',
-      fullscreen:false,
+      fullscreen:true,
       resizable:true,
-      borderless:false
+      borderless:true
     }
   },
 
   project : {
     name : 'Luxe Particle Designer',
-    version : '0.0.1',
+    version : '0.1.0-alpha+0',
     author : 'FuzzyWuzzie',
 
     app : {
@@ -23,7 +22,8 @@
 
     build : {
       dependencies : {
-        luxe : '*'
+        luxe : '*',
+        mint : '*'
       }
     },
 
@@ -32,7 +32,5 @@
       assets : 'assets/',
       index : { path:'custom_index.html => index.html', template:'project', not_listed:true }
     }
-
   }
-
 }
