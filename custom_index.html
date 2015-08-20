@@ -52,7 +52,7 @@
                 };
             }
 
-            function openWindow(jsonString) {
+           /*function openWindow(jsonString) {
                 var jsonWindow = window.open("", "Particles JSON", "width=400, height=400");
                 jsonWindow.document.write('<html><head><title>Particles JSON</title><style type="text/css">\
                         .string { color: green; }\
@@ -62,6 +62,10 @@
                         .key { color: red; }\
                     </style></head><body></body></html>');
                 jsonWindow.document.body.appendChild(document.createElement('pre')).innerHTML = syntaxHighlight(JSON.stringify(JSON.parse(jsonString), undefined, 4));
+            }*/
+            function saveJSON(jsonString) {
+                var blob = new Blob([jsonString], {type: "application/json;charset=utf-8"});
+                saveAs(blob, "particles.json");
             }
         </script>
         <script type="text/javascript" src="./{{project.app.name}}{{#if project.app.web.min}}.min{{/if}}.js"></script>

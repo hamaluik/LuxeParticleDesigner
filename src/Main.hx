@@ -468,18 +468,26 @@ class Main extends luxe.Game {
         	parent: canvas,
         	name: 'saveloadwindow',
         	title: 'Save / Load',
-        	x: Luxe.screen.width - 410, y: 498, w: 400, h: 92,
+        	x: Luxe.screen.width - 410, y: 498, w: 400, h: 114,
         	collapsible: true,
         	resizable: true,
         	focusable: true,
         	closable: false,
         	moveable: true
         }));
+		controls.set('particlesname_label', new mint.Label({
+			name: 'particlesname_label',
+			parent: controls.get('saveloadwindow'),
+			text_size: 12,
+			x: 2, y: 26, w: 100, h: 20,
+			text: 'Particles Name:',
+			align: TextAlign.left, align_vertical: TextAlign.center
+		}));
 		controls.set('examples_loadjsonbtn', new mint.Button({
 			name: 'examples_loadjsonbtn',
 			parent: controls.get('saveloadwindow'),
 			text_size: 12,
-			x: 2, y: 26, w: 396, h: 20,
+			x: 2, y: 48, w: 396, h: 20,
 			text: 'Load (from JSON)',
 			onclick: function(_, _) {
 				#if web
@@ -499,7 +507,7 @@ class Main extends luxe.Game {
 			name: 'examples_savejsonbtn',
 			parent: controls.get('saveloadwindow'),
 			text_size: 12,
-			x: 2, y: 48, w: 396, h: 20,
+			x: 2, y: 70, w: 396, h: 20,
 			text: 'Save (to JSON)',
 			onclick: function(_, _) {
 				saveToJSON();
@@ -509,12 +517,12 @@ class Main extends luxe.Game {
 			name: 'examples_label',
 			parent: controls.get('saveloadwindow'),
 			text_size: 12,
-			x: 2, y: 70, w: 50, h: 20,
+			x: 2, y: 92, w: 50, h: 20,
 			text: 'Example:',
 			align: TextAlign.right, align_vertical: TextAlign.center
 		}));
         makeDropdown('example_dropdown', '',  controls.get('saveloadwindow'),
-                   54, 70, 200, 20,
+                   54, 92, 200, 20,
                    examples,
                    function(idx:Int, c:Control, e:MouseEvent) {
                    		 exampleIDX = idx;
@@ -525,7 +533,7 @@ class Main extends luxe.Game {
 			name: 'examples_loadbtn',
 			parent: controls.get('saveloadwindow'),
 			text_size: 12,
-			x: 256, y: 70, w: 142, h: 20,
+			x: 256, y: 92, w: 142, h: 20,
 			text: 'Load!',
 			mouse_input: false,
 			onclick: function(_, _) {
@@ -698,7 +706,8 @@ class Main extends luxe.Game {
 		var json = haxe.Json.stringify(template, null, '	');
 		
 		#if web
-			untyped openWindow(json);
+			//untyped openWindow(json);
+			untyped saveJSON(json);
 		#elseif desktop
 			// Get the path where to save file
 			var path = Luxe.snow.io.module.dialog_save('Save particle file', {extension:'json'});

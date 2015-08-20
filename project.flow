@@ -17,7 +17,13 @@
 
     app : {
       name : 'LuxeParticleDesigner',
-      package : 'com.blazingmammothgames.luxe'
+      package : 'com.blazingmammothgames.luxeparticledesigner',
+      web : {
+          libs : {
+            Blob: 'Blob.js',
+            FileSave: 'FileSaver.min.js'
+          }
+      }
     },
 
     build : {
@@ -30,7 +36,9 @@
     files : {
       config : 'config.json',
       assets : 'assets/',
-      index : { path:'custom_index.html => index.html', template:'project', not_listed:true }
+      index : { path:'custom_index.html => index.html', template:'project', not_listed:true },
+      Blob : 'Blob.js',
+      FileSaver : 'FileSaver.min.js'
     }
   }
 }
