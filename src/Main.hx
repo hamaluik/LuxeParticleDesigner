@@ -521,7 +521,7 @@ class Main extends luxe.Game {
 			text: 'Example:',
 			align: TextAlign.right, align_vertical: TextAlign.center
 		}));
-        makeDropdown('example_dropdown', '',  controls.get('saveloadwindow'),
+        makeDropdown('example_dropdown', 'select...',  controls.get('saveloadwindow'),
                    54, 92, 200, 20,
                    examples,
                    function(idx:Int, c:Control, e:MouseEvent) {
@@ -716,6 +716,16 @@ class Main extends luxe.Game {
 			sys.io.File.saveContent(path, json);
 		#end
 	} // saveToJSON
+
+    override function config(config:luxe.AppConfig) {
+
+        #if web
+          config.window.fullscreen = true;
+        #end
+
+        return config;
+
+    } //config
 
     override function onmousemove(e) {
         if(canvas != null) canvas.mousemove(Convert.mouse_event(e));
