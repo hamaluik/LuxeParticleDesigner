@@ -106,6 +106,8 @@ class Main extends luxe.Game {
 	}
 
 	function initBatchers() {
+    blend_src = phoenix.Batcher.BlendMode.src_alpha;
+    blend_dst = phoenix.Batcher.BlendMode.one_minus_src_alpha;
 		Luxe.renderer.batcher.add_group(5,
 			function(b:phoenix.Batcher) {
 				Luxe.renderer.blend_mode(blend_src, blend_dst);
