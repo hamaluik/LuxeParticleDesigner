@@ -708,6 +708,16 @@ class Main extends luxe.Game {
 		#end
 	} // saveToJSON
 
+    override function config(config:luxe.AppConfig) {
+
+        #if web
+          config.window.fullscreen = true;
+        #end
+
+        return config;
+
+    } //config
+
     override function onmousemove(e) {
         if(canvas != null) canvas.mousemove(Convert.mouse_event(e));
     } // onmousemove
