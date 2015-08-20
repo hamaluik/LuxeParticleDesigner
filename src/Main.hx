@@ -23,8 +23,8 @@ class Main extends luxe.Game {
 	// particle options
 	var particles:ParticleSystem;
 	var emitter:ParticleEmitter;
-	var blendSrc:Int;
-	var blendDst:Int;
+	var blend_src:Int;
+	var blend_dst:Int;
 	var blendModes:Array<String> = ['zero', 'one', 'src_color', 'one_minus_src_color',
 									'src_alpha', 'one_minus_src_alpha', 'dst_alpha',
 									'one_minus_dst_alpha', 'dst_color', 'one_minus_dst_color',
@@ -99,7 +99,7 @@ class Main extends luxe.Game {
 	function initBatchers() {
 		Luxe.renderer.batcher.add_group(5,
 			function(b:phoenix.Batcher) {
-				Luxe.renderer.blend_mode(blendSrc, blendDst);
+				Luxe.renderer.blend_mode(blend_src, blend_dst);
 			},
 			function(b:phoenix.Batcher) {
 				Luxe.renderer.blend_mode();
@@ -363,18 +363,18 @@ class Main extends luxe.Game {
 						emitter.end_color = endColour.toColor();
                    }
         );
-        makeDropdown('blendsrc', 'SRC Blending',  controls.get('colourwindow'),
+        makeDropdown('blend_src', 'SRC Blending',  controls.get('colourwindow'),
                    2, 202, 396, 20,
                    blendModes,
                    function(idx:Int, c:Control, e:MouseEvent) {
-                   		 blendSrc = idx;
+                   		 blend_src = idx;
                    }, true
         );
-        makeDropdown('blenddst', 'DST Blending',  controls.get('colourwindow'),
+        makeDropdown('blend_dst', 'DST Blending',  controls.get('colourwindow'),
                    2, 224, 396, 20,
                    blendModes,
                    function(idx:Int, c:Control, e:MouseEvent) {
-                   		 blendDst = idx;
+                   		 blend_dst = idx;
                    }, true
         );
         
@@ -459,7 +459,7 @@ class Main extends luxe.Game {
         	parent: canvas,
         	name: 'saveloadwindow',
         	title: 'Save / Load',
-        	x: Luxe.screen.width - 410, y: 498, w: 400, h: 400,
+        	x: Luxe.screen.width - 410, y: 498, w: 400, h: 92,
         	collapsible: true,
         	resizable: true,
         	focusable: true,
@@ -491,7 +491,27 @@ class Main extends luxe.Game {
 				trace('Not implemented yet!');
 			}
 		}));
-	}
+		controls.set('examples_loadjsonbtn', new mint.Button({
+			name: 'examples_loadjsonbtn',
+			parent: controls.get('saveloadwindow'),
+			text_size: 12,
+			x: 2, y: 48, w: 396, h: 20,
+			text: 'Load (from JSON)',
+			onclick: function(_, _) {
+				loadFromJSON();
+			}
+		}));
+		controls.set('examples_savejsonbtn', new mint.Button({
+			name: 'examples_savejsonbtn',
+			parent: controls.get('saveloadwindow'),
+			text_size: 12,
+			x: 2, y: 70, w: 396, h: 20,
+			text: 'Save (to JSON)',
+			onclick: function(_, _) {
+				saveToJSON();
+			}
+		}));
+	} // initUI
 	
 	inline function makeSlider(name:String, label:String, parent:Control,
 	                           x:Float, y:Float, labelW:Float, w:Float, h:Float,
@@ -536,7 +556,7 @@ class Main extends luxe.Game {
 		
 		// add the custom onchange callback
 		slider.onchange.listen(onchange);
-	}
+	} // makeSlider
 	
 	inline function makeDropdown(name:String, label:String, parent:Control,
 	                             x:Float, y:Float, w:Float, h:Float,
@@ -566,7 +586,97 @@ class Main extends luxe.Game {
 
 		dropdown.onselect.listen(function(idx:Int,_,_) { dropdown.label.text = (prependLabel ? (label + ": ") : '') + items[idx]; });
 		dropdown.onselect.listen(onchange);
-	}
+	} // makeDropdown
+	
+	function loadFromJSON() {
+		var content:String = '';
+		#if web
+			Luxe.snow.window.simple_message("Sorry, this functionality isn't in yet!", "TODO");
+			return;
+		#elseif desktop
+			// Get the path where to save file
+			var path = Luxe.snow.io.module.dialog_open('Open particle file', [{extension:'json', desc:'JSON'}]);
+			if(path.length <= 0) return;
+			// Save it
+			content = sys.io.File.getContent(path);
+		#end
+
+		// parse the JSON
+		var json = haxe.Json.parse(content);
+
+		// grab loaded particle values
+		var loaded:ParticleEmitterOptions = {
+			emit_time: json.emit_time,
+			emit_count: json.emit_count,
+			direction: json.direction,
+			direction_random: json.direction_random,
+			speed: json.speed,
+			speed_random: json.speed_random,
+			end_speed: json.end_speed,
+			life: json.life,
+			life_random: json.life_random,
+			rotation: json.zrotation,
+			rotation_random: json.rotation_random,
+			end_rotation: json.end_rotation,
+			end_rotation_random: json.end_rotation_random,
+			rotation_offset: json.rotation_offset,
+			pos_offset: new Vector(json.pos_offset.x, json.pos_offset.y),
+			pos_random: new Vector(json.pos_random.x, json.pos_random.y),
+			gravity: new Vector(json.gravity.x, json.gravity.y),
+			start_size: new Vector(json.start_size.x, json.start_size.y),
+			start_size_random: new Vector(json.start_size_random.x, json.start_size_random.y),
+			end_size: new Vector(json.end_size.x, json.end_size.y),
+			end_size_random: new Vector(json.end_size_random.x, json.end_size_random.y),
+			start_color: new Color(json.start_color.r, json.start_color.g, json.start_color.b, json.start_color.a),
+			end_color: new Color(json.end_color.r, json.end_color.g, json.end_color.b, json.end_color.a)
+		};
+		// todo: add blend modes
+
+		reloadParticleSystem(loaded);
+	} // loadFromJSON
+	
+	function saveToJSON() {
+		// grab the emitter info and store it in a template
+		var template:Dynamic = {
+			emit_time: emitter.emit_time,
+			emit_count: emitter.emit_count,
+			direction: emitter.direction,
+			direction_random: emitter.direction_random,
+			speed: emitter.speed,
+			speed_random: emitter.speed_random,
+			end_speed: emitter.end_speed,
+			life: emitter.life,
+			life_random: emitter.life_random,
+			rotation: emitter.zrotation,
+			rotation_random: emitter.rotation_random,
+			end_rotation: emitter.end_rotation,
+			end_rotation_random: emitter.end_rotation_random,
+			rotation_offset: emitter.rotation_offset,
+			pos_offset: emitter.pos_offset,
+			pos_random: emitter.pos_random,
+			gravity: emitter.gravity,
+			start_size: emitter.start_size,
+			start_size_random: emitter.start_size_random,
+			end_size: emitter.end_size,
+			end_size_random: emitter.end_size_random,
+			start_color: emitter.start_color,
+			end_color: emitter.end_color,
+			blend_src: blend_src,
+			blend_dst: blend_dst
+		};
+
+		var json = haxe.Json.stringify(template, null, '	');
+		
+		#if web
+			untyped openWindow(json);
+		#elseif desktop
+			// Get the path where to save file
+			var path = Luxe.snow.io.module.dialog_save('Save particle file', {extension:'json'});
+			if(path.length <= 0) return;
+			// Save it
+			sys.io.File.saveContent(path, json);
+		#end
+	} // saveToJSON
 
     override function onmousemove(e) {
         if(canvas != null) canvas.mousemove(Convert.mouse_event(e));
