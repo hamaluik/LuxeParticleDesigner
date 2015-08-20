@@ -607,7 +607,7 @@ class Main extends luxe.Game {
 	inline function makeSlider(name:String, label:String, parent:Control,
 	                           x:Float, y:Float, labelW:Float, w:Float, h:Float,
 	                           value:Float, min:Float, max:Float, step:Float,
-	                           ?onchange:Float->Float->Void) {
+	                           onchange:Float->Float->Void) {
 		// make a string label describing what this is
 		var label:mint.Label = new mint.Label({
 			name: name + '_label',
@@ -623,13 +623,13 @@ class Main extends luxe.Game {
 		var slider:mint.Slider = new mint.Slider({
 			name: name,
 			parent: parent,
-			x: x + labelW + 2, y: y, w: w - labelW - 2, h: h,
+			x: x + labelW + 2, y: y, w: w - labelW - 52, h: h,
 			value: value, min: min, max: max, step: step,
 			vertical: false
 		});
 		controls.set(name, slider);
 		
-		// create an indicator to show the actual value
+		/*// create an indicator to show the actual value
 		var indicator:mint.Label = new mint.Label({
 			name: name + '_indicator',
 			parent: slider,
@@ -638,15 +638,40 @@ class Main extends luxe.Game {
 			text: '${slider.value}',
 			align: TextAlign.center, align_vertical: TextAlign.center
 		});
-		controls.set(name + '_indicator', slider);
+		controls.set(name + '_indicator', indicator);
 		
 		// update the indicator!
 		slider.onchange.listen(function(val:Float, _) {
 			indicator.text = '$val';
-		});
-		
-		// add the custom onchange callback
-		slider.onchange.listen(onchange);
+		});*/
+
+    // create a text field to type numbers in
+    var numbers = new EReg('^[0-9]+[.]?[0-9]{0,2}$','gi');
+    var textEdit:mint.TextEdit = new mint.TextEdit({
+      name: name + '_indicator',
+      parent: parent,
+      text_size: 12,
+      x: w - 52, y: y, w: 50, h: h,
+      text: '' + value,
+      filter: function(char,future,prev){ return numbers.match(future); }
+    });
+    controls.set(name + '_indicator', textEdit);
+    
+    var handleOnChangeTextEdit:Bool = true;
+    textEdit.onchange.listen(function(s:String) {
+      if(!handleOnChangeTextEdit) return;
+      var _v:Float = Std.parseFloat(s);
+      if(_v == Math.NaN) _v = 0;
+      slider.value = _v;
+      onchange(slider.value, null);
+    });
+    
+    slider.onchange.listen(function(val:Float, _) {
+      handleOnChangeTextEdit = false;
+      textEdit.text = '' + val;
+      handleOnChangeTextEdit = true;
+      onchange(val, null);
+    });
 	} // makeSlider
 	
 	inline function makeDropdown(name:String, label:String, parent:Control,
