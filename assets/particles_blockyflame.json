@@ -1,0 +1,96 @@
+{
+    "emit_time": 0.05,
+    "emit_count": 1,
+    "direction": 0,
+    "direction_random": 0,
+    "speed": 0,
+    "speed_random": 0,
+    "end_speed": 0,
+    "life": 0.9,
+    "life_random": 0,
+    "rotation": 0,
+    "rotation_random": 0,
+    "end_rotation": 0,
+    "end_rotation_random": 0,
+    "rotation_offset": 0,
+    "pos_offset": {
+        "_construct": false,
+        "ignore_listeners": false,
+        "w": 0,
+        "z": 0,
+        "y": 0,
+        "x": 0
+    },
+    "pos_random": {
+        "_construct": false,
+        "ignore_listeners": false,
+        "w": 0,
+        "z": 0,
+        "y": 5,
+        "x": 5
+    },
+    "gravity": {
+        "_construct": false,
+        "ignore_listeners": false,
+        "w": 0,
+        "z": 0,
+        "y": -90,
+        "x": 0
+    },
+    "start_size": {
+        "_construct": false,
+        "ignore_listeners": false,
+        "w": 0,
+        "z": 0,
+        "y": 32,
+        "x": 32
+    },
+    "start_size_random": {
+        "_construct": false,
+        "ignore_listeners": false,
+        "w": 0,
+        "z": 0,
+        "y": 0,
+        "x": 0
+    },
+    "end_size": {
+        "_construct": false,
+        "ignore_listeners": false,
+        "w": 0,
+        "z": 0,
+        "y": 8,
+        "x": 8
+    },
+    "end_size_random": {
+        "_construct": false,
+        "ignore_listeners": false,
+        "w": 0,
+        "z": 0,
+        "y": 0,
+        "x": 0
+    },
+    "start_color": {
+        "v": 0.5,
+        "s": 1,
+        "h": 60,
+        "refreshing": false,
+        "is_hsv": true,
+        "is_hsl": false,
+        "a": 1,
+        "b": 0,
+        "g": 0.5,
+        "r": 0.5
+    },
+    "end_color": {
+        "v": 0.5,
+        "s": 1,
+        "h": 0,
+        "refreshing": false,
+        "is_hsv": true,
+        "is_hsl": false,
+        "a": 0,
+        "b": 0,
+        "g": 0,
+        "r": 0.5
+    }
+}
