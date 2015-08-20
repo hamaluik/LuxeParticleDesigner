@@ -630,7 +630,8 @@ class Main extends luxe.Game {
 			start_color: new Color(json.start_color.r, json.start_color.g, json.start_color.b, json.start_color.a),
 			end_color: new Color(json.end_color.r, json.end_color.g, json.end_color.b, json.end_color.a)
 		};
-		// todo: add blend modes
+		blend_src = json.blend_src;
+		blend_dst = json.blend_dst;
 
 		reloadParticleSystem(loaded);
 	} // loadFromJSON
