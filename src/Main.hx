@@ -81,8 +81,8 @@ class Main extends luxe.Game {
 			start_size_random: new Vector(0, 0),
 			end_size: new Vector(8, 8),
 			end_size_random: new Vector(0, 0),
-			start_color: startColour.toColor(),
-			end_color: endColour.toColor()
+			start_color: startColour,
+			end_color: endColour
 		}
 		particles.add_emitter(template);
 		emitter = particles.get('prototyping');
@@ -313,7 +313,7 @@ class Main extends luxe.Game {
                    startColour.h, 0, 360, 1,
                    function(val:Float, _) {
                    		startColour.h = val;
-						emitter.start_color = startColour.toColor();
+						emitter.start_color = startColour;
                    }
         );
         makeSlider('startsaturation', 'Start Saturation',  controls.get('colourwindow'),
@@ -321,7 +321,7 @@ class Main extends luxe.Game {
                    startColour.s, 0, 1, 0.01,
                    function(val:Float, _) {
                    		startColour.s = val;
-						emitter.start_color = startColour.toColor();
+						emitter.start_color = startColour;
                    }
         );
         makeSlider('startvalue', 'Start Value',  controls.get('colourwindow'),
@@ -329,7 +329,7 @@ class Main extends luxe.Game {
                    startColour.v, 0, 1, 0.01,
                    function(val:Float, _) {
                    		startColour.v = val;
-						emitter.start_color = startColour.toColor();
+						emitter.start_color = startColour;
                    }
         );
         makeSlider('startalpha', 'Start Alpha',  controls.get('colourwindow'),
@@ -337,7 +337,7 @@ class Main extends luxe.Game {
                    startColour.a, 0, 1, 0.01,
                    function(val:Float, _) {
                    		startColour.a = val;
-						emitter.start_color = startColour.toColor();
+						emitter.start_color = startColour;
                    }
         );
         makeSlider('endhue', 'End Hue',  controls.get('colourwindow'),
@@ -345,7 +345,7 @@ class Main extends luxe.Game {
                    endColour.h, 0, 360, 1,
                    function(val:Float, _) {
                    		endColour.h = val;
-						emitter.end_color = endColour.toColor();
+						emitter.end_color = endColour;
                    }
         );
         makeSlider('endsaturation', 'End Saturation',  controls.get('colourwindow'),
@@ -353,7 +353,7 @@ class Main extends luxe.Game {
                    endColour.s, 0, 1, 0.01,
                    function(val:Float, _) {
                    		endColour.s = val;
-						emitter.end_color = endColour.toColor();
+						emitter.end_color = endColour;
                    }
         );
         makeSlider('endvalue', 'End Value',  controls.get('colourwindow'),
@@ -361,7 +361,7 @@ class Main extends luxe.Game {
                    endColour.v, 0, 1, 0.01,
                    function(val:Float, _) {
                    		endColour.v = val;
-						emitter.end_color = endColour.toColor();
+						emitter.end_color = endColour;
                    }
         );
         makeSlider('endalpha', 'End Alpha',  controls.get('colourwindow'),
@@ -369,7 +369,7 @@ class Main extends luxe.Game {
                    endColour.a, 0, 1, 0.01,
                    function(val:Float, _) {
                    		endColour.a = val;
-						emitter.end_color = endColour.toColor();
+						emitter.end_color = endColour;
                    }
         );
         makeDropdown('blend_src', 'SRC Blending',  controls.get('colourwindow'),
@@ -513,7 +513,7 @@ class Main extends luxe.Game {
 			text: 'Example:',
 			align: TextAlign.right, align_vertical: TextAlign.center
 		}));
-        makeDropdown('example_dropdown', '',  controls.get('saveloadwindow'),
+        makeDropdown('example_dropdown', 'select...',  controls.get('saveloadwindow'),
                    54, 70, 200, 20,
                    examples,
                    function(idx:Int, c:Control, e:MouseEvent) {
