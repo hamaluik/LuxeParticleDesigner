@@ -368,14 +368,14 @@ class Main extends luxe.Game {
                    blendModes,
                    function(idx:Int, c:Control, e:MouseEvent) {
                    		 blendSrc = idx;
-                   }
+                   }, true
         );
         makeDropdown('blenddst', 'DST Blending',  controls.get('colourwindow'),
                    2, 224, 396, 20,
                    blendModes,
                    function(idx:Int, c:Control, e:MouseEvent) {
                    		 blendDst = idx;
-                   }
+                   }, true
         );
         
         
@@ -453,6 +453,44 @@ class Main extends luxe.Game {
                    		emitter.pos_random.y = val;
                    }
         );
+        
+        
+        controls.set('saveloadwindow', new mint.Window({
+        	parent: canvas,
+        	name: 'saveloadwindow',
+        	title: 'Save / Load',
+        	x: Luxe.screen.width - 410, y: 498, w: 400, h: 400,
+        	collapsible: true,
+        	resizable: true,
+        	focusable: true,
+        	closable: false,
+        	moveable: true
+        }));
+		controls.set('examples_label', new mint.Label({
+			name: 'examples_label',
+			parent: controls.get('saveloadwindow'),
+			text_size: 12,
+			x: 2, y: 26, w: 50, h: 20,
+			text: 'Example:',
+			align: TextAlign.right, align_vertical: TextAlign.center
+		}));
+        makeDropdown('example_dropdown', '',  controls.get('saveloadwindow'),
+                   54, 26, 200, 20,
+                   ['fireflies'],
+                   function(idx:Int, c:Control, e:MouseEvent) {
+                   		 trace("Not implemented yet!");
+                   }, false
+        );
+		controls.set('examples_loadbtn', new mint.Button({
+			name: 'examples_loadbtn',
+			parent: controls.get('saveloadwindow'),
+			text_size: 12,
+			x: 256, y: 26, w: 142, h: 20,
+			text: 'Load!',
+			onclick: function(_, _) {
+				trace('Not implemented yet!');
+			}
+		}));
 	}
 	
 	inline function makeSlider(name:String, label:String, parent:Control,
@@ -503,7 +541,8 @@ class Main extends luxe.Game {
 	inline function makeDropdown(name:String, label:String, parent:Control,
 	                             x:Float, y:Float, w:Float, h:Float,
 	                             items:Array<String>,
-	                             onchange:Int->Control->MouseEvent->Void) {
+	                             onchange:Int->Control->MouseEvent->Void,
+	                             prependLabel:Bool) {
 		var dropdown:mint.Dropdown = new mint.Dropdown({
 			parent: parent,
 			name: name, text: label,
@@ -525,7 +564,7 @@ class Main extends luxe.Game {
             }
 		}
 
-		dropdown.onselect.listen(function(idx:Int,_,_) { dropdown.label.text = label + ": " + items[idx]; });
+		dropdown.onselect.listen(function(idx:Int,_,_) { dropdown.label.text = (prependLabel ? (label + ": ") : '') + items[idx]; });
 		dropdown.onselect.listen(onchange);
 	}
 
