@@ -41,7 +41,7 @@ class Main extends luxe.Game {
     var controls:StringMap<Control>;
     
     // examples
-	var examples:Array<String> = ['fireflies'];
+	var examples:Array<String> = ['blockyflame', 'fireflies'];
 	var exampleIDX:Int = -1;
 
 	override function ready() {
