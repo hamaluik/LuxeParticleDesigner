@@ -63,9 +63,9 @@
                     </style></head><body></body></html>');
                 jsonWindow.document.body.appendChild(document.createElement('pre')).innerHTML = syntaxHighlight(JSON.stringify(JSON.parse(jsonString), undefined, 4));
             }*/
-            function saveJSON(jsonString) {
+            function saveJSON(fileName, jsonString) {
                 var blob = new Blob([jsonString], {type: "application/json;charset=utf-8"});
-                saveAs(blob, "particles.json");
+                saveAs(blob, fileName);
             }
         </script>
         <script type="text/javascript" src="./{{project.app.name}}{{#if project.app.web.min}}.min{{/if}}.js"></script>

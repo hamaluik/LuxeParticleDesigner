@@ -43,7 +43,7 @@ class Main extends luxe.Game {
     var controls:StringMap<Control>;
     
     // examples
-	var examples:Array<String> = ['blockyflame', 'fireflies'];
+	var examples:Array<String> = ['blockyflame', 'fireflies', 'snow'];
 	var exampleIDX:Int = -1;
 
 	override function ready() {
@@ -103,6 +103,48 @@ class Main extends luxe.Game {
 
 		emitter = particles.get('prototyping');
 		emitter.init();
+		
+		reloadSliders();
+		trace("Reload complete!");
+	}
+	
+	function reloadSliders() {
+		cast(controls.get('emittime'), mint.Slider).value = emitter.emit_time;
+		cast(controls.get('emitcount'), mint.Slider).value = emitter.emit_count;
+		cast(controls.get('emitdirection'), mint.Slider).value = emitter.direction;
+		cast(controls.get('emitdirection_random'), mint.Slider).value = emitter.direction_random;
+		cast(controls.get('emitspeed'), mint.Slider).value = emitter.speed;
+		cast(controls.get('emitspeed_random'), mint.Slider).value = emitter.speed_random;
+		cast(controls.get('life'), mint.Slider).value = emitter.life;
+		cast(controls.get('life_random'), mint.Slider).value = emitter.life_random;
+		cast(controls.get('startsizex'), mint.Slider).value = emitter.start_size.x;
+		cast(controls.get('startsizey'), mint.Slider).value = emitter.start_size.y;
+		cast(controls.get('startsizex_random'), mint.Slider).value = emitter.start_size_random.x;
+		cast(controls.get('startsizey_random'), mint.Slider).value = emitter.start_size_random.y;
+		cast(controls.get('endsizex'), mint.Slider).value = emitter.end_size.x;
+		cast(controls.get('endsizey'), mint.Slider).value = emitter.end_size.y;
+		cast(controls.get('endsizex_random'), mint.Slider).value = emitter.end_size_random.x;
+		cast(controls.get('endsizey_random'), mint.Slider).value = emitter.end_size_random.y;
+		cast(controls.get('gravityx'), mint.Slider).value = emitter.gravity.x;
+		cast(controls.get('gravityy'), mint.Slider).value = emitter.gravity.y;
+		cast(controls.get('starthue'), mint.Slider).value = startColour.h;
+		cast(controls.get('startsaturation'), mint.Slider).value = startColour.s;
+		cast(controls.get('startvalue'), mint.Slider).value = startColour.v;
+		cast(controls.get('startalpha'), mint.Slider).value = startColour.a;
+		cast(controls.get('endhue'), mint.Slider).value = endColour.h;
+		cast(controls.get('endsaturation'), mint.Slider).value = endColour.s;
+		cast(controls.get('endvalue'), mint.Slider).value = endColour.v;
+		cast(controls.get('endalpha'), mint.Slider).value = endColour.a;
+		// TODO: blending
+		cast(controls.get('startrotation'), mint.Slider).value = emitter.zrotation;
+		cast(controls.get('startrotation_random'), mint.Slider).value = emitter.rotation_random;
+		cast(controls.get('endrotation'), mint.Slider).value = emitter.end_rotation;
+		cast(controls.get('endrotation_random'), mint.Slider).value = emitter.end_rotation_random;
+		cast(controls.get('rotationoffset'), mint.Slider).value = emitter.rotation_offset;
+		cast(controls.get('posoffsetx'), mint.Slider).value = emitter.pos_offset.x;
+		cast(controls.get('posoffsety'), mint.Slider).value = emitter.pos_offset.y;
+		cast(controls.get('pos_randomx'), mint.Slider).value = emitter.pos_random.x;
+		cast(controls.get('pos_randomy'), mint.Slider).value = emitter.pos_random.y;
 	}
 
 	function initBatchers() {
@@ -132,7 +174,6 @@ class Main extends luxe.Game {
 
         // create some controls
         controls = new StringMap<Control>();
-
         
         controls.set('emissionwindow', new mint.Window({
         	parent: canvas,
@@ -485,6 +526,13 @@ class Main extends luxe.Game {
 			text: 'Particles Name:',
 			align: TextAlign.left, align_vertical: TextAlign.center
 		}));
+		controls.set('particlesname_textedit', new mint.TextEdit({
+			name: 'particlesname_textedit',
+			parent: controls.get('saveloadwindow'),
+			text_size: 12,
+			x: 104, y: 26, w: 294, h: 20,
+			text: 'blockyflame'
+		}));
 		controls.set('examples_loadjsonbtn', new mint.Button({
 			name: 'examples_loadjsonbtn',
 			parent: controls.get('saveloadwindow'),
@@ -502,6 +550,7 @@ class Main extends luxe.Game {
 					var content:String = sys.io.File.getContent(path);
 					
 					loadFromJSONText(content);
+					cast(controls.get('particlesname_textedit'), mint.TextEdit).text = 'untitled';
 				#end
 			}
 		}));
@@ -540,13 +589,14 @@ class Main extends luxe.Game {
 			mouse_input: false,
 			onclick: function(_, _) {
 				var parcel:Parcel = new Parcel({
-					jsons: [{ id: 'assets/particles_${examples[exampleIDX]}.json' }]
+					jsons: [{ id: 'assets/example_${examples[exampleIDX]}.json' }]
 				});
 				new ParcelProgress({
 					parcel: parcel,
 					background: new Color(0, 0, 0, 0),
 					oncomplete: function(_) {
-						loadFromJSON(Luxe.resources.json('assets/particles_${examples[exampleIDX]}.json').asset.json);
+						loadFromJSON(Luxe.resources.json('assets/example_${examples[exampleIDX]}.json').asset.json);
+						cast(controls.get('particlesname_textedit'), mint.TextEdit).text = examples[exampleIDX];
 					}
 				});
 				parcel.load();
@@ -644,6 +694,8 @@ class Main extends luxe.Game {
 	
 	function loadFromJSON(json:Dynamic) {
 		// grab loaded particle values
+		startColour = new ColorHSV(json.start_color.h, json.start_color.s, json.start_color.v, json.start_color.a);
+		endColour = new ColorHSV(json.end_color.h, json.end_color.s, json.end_color.v, json.end_color.a);
 		var loaded:ParticleEmitterOptions = {
 			emit_time: json.emit_time,
 			emit_count: json.emit_count,
@@ -666,8 +718,8 @@ class Main extends luxe.Game {
 			start_size_random: new Vector(json.start_size_random.x, json.start_size_random.y),
 			end_size: new Vector(json.end_size.x, json.end_size.y),
 			end_size_random: new Vector(json.end_size_random.x, json.end_size_random.y),
-			start_color: new Color(json.start_color.r, json.start_color.g, json.start_color.b, json.start_color.a),
-			end_color: new Color(json.end_color.r, json.end_color.g, json.end_color.b, json.end_color.a)
+			start_color: startColour,
+			end_color: endColour
 		};
 		blend_src = json.blend_src;
 		blend_dst = json.blend_dst;
@@ -709,7 +761,8 @@ class Main extends luxe.Game {
 		
 		#if web
 			//untyped openWindow(json);
-			untyped saveJSON(json);
+			var name:String = cast(controls.get('particlesname_textedit'), mint.TextEdit).text;
+			untyped saveJSON(name + '.json', json);
 		#elseif desktop
 			// Get the path where to save file
 			var path = Luxe.snow.io.module.dialog_save('Save particle file', {extension:'json'});
