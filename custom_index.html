@@ -38,6 +38,19 @@
                     return '<span class="' + cls + '">' + match + '</span>';
                 });
             }
+            
+            function openLoadWindow() {
+                var loadWindow = window.open("", "Particles JSON", "width=400, height=400");
+                loadWindow.document.write('<html><head><title>Particles JSON</title></head><body>\
+                                          <p>Paste your JSON into the box below and click "Load"!</p>\
+                                          <textarea id="loadJSONContent" rows="20" cols="50"></textarea><br/>\
+                                          <button id="loadJSONButton">Load!</button>\
+                                          </body></html>');
+                loadWindow.document.getElementById("loadJSONButton").onclick = function() {
+                    loadFromJSONTextWindow(loadWindow.document.getElementById("loadJSONContent").value);
+                    loadWindow.close();
+                };
+            }
 
             function openWindow(jsonString) {
                 var jsonWindow = window.open("", "Particles JSON", "width=400, height=400");

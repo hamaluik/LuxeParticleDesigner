@@ -22,6 +22,8 @@ import mint.render.luxe.Convert;
 import mint.layout.margins.Margins;
 
 class Main extends luxe.Game {
+	static var instance:Main;
+	
 	// particle options
 	var particles:ParticleSystem;
 	var emitter:ParticleEmitter;
@@ -45,6 +47,7 @@ class Main extends luxe.Game {
 	var exampleIDX:Int = -1;
 
 	override function ready() {
+		instance = this;
 		initParticleSystem();
 		initBatchers();
 		initUI();
@@ -480,17 +483,15 @@ class Main extends luxe.Game {
 			text: 'Load (from JSON)',
 			onclick: function(_, _) {
 				#if web
-					Luxe.snow.window.simple_message("Sorry, this functionality isn't in yet!", "TODO");
+					untyped openLoadWindow();
 				#elseif desktop
 					// Get the path where to save file
 					var path = Luxe.snow.io.module.dialog_open('Open particle file', [{extension:'json', desc:'JSON'}]);
 					if(path.length <= 0) return;
 					// Save it
 					var content:String = sys.io.File.getContent(path);
-					// parse the JSON
-					var json:Dynamic = haxe.Json.parse(content);
 					
-					loadFromJSON(json);
+					loadFromJSONText(content);
 				#end
 			}
 		}));
@@ -617,6 +618,19 @@ class Main extends luxe.Game {
 		dropdown.onselect.listen(function(idx:Int,_,_) { dropdown.label.text = (prependLabel ? (label + ": ") : '') + items[idx]; });
 		dropdown.onselect.listen(onchange);
 	} // makeDropdown
+
+	#if web	
+		@:expose("loadFromJSONTextWindow")
+		static function loadFromJSONTextWindow(text:String) {
+			instance.loadFromJSONText(text);
+		}
+	#end
+	
+	function loadFromJSONText(text:String) {
+		// parse the JSON
+		var json:Dynamic = haxe.Json.parse(text);
+		loadFromJSON(json);
+	}
 	
 	function loadFromJSON(json:Dynamic) {
 		// grab loaded particle values
