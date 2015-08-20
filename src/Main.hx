@@ -1,3 +1,4 @@
+import haxe.ds.StringMap;
 import luxe.Color;
 import luxe.Input;
 import luxe.Log;
@@ -5,65 +6,54 @@ import luxe.Particles;
 import luxe.Rectangle;
 import luxe.Sprite;
 import luxe.Vector;
-import phoenix.BitmapFont;
-import phoenix.Texture;
-import luxe.Parcel;
 import luxe.Text;
 import luxe.options.ParticleOptions;
 import luxe.resource.Resource;
+import luxe.Parcel;
+import luxe.ParcelProgress;
 
-import ui.Slider;
-import ui.SliderOptions;
-import ui.Button;
-import ui.ButtonOptions;
+import mint.Canvas;
+import mint.render.luxe.LuxeMintRender;
+import mint.render.Rendering;
+import mint.types.Types;
+import mint.Control;
+import mint.render.luxe.Convert;
+
+import mint.layout.margins.Margins;
 
 class Main extends luxe.Game {
-	var sliders:Array<ParticlePropertyControl> = new Array<ParticlePropertyControl>();
+	static var instance:Main;
+	
+	// particle options
 	var particles:ParticleSystem;
 	var emitter:ParticleEmitter;
 	var blend_src:Int;
 	var blend_dst:Int;
-
+	var blendModes:Array<String> = ['zero', 'one', 'src_color', 'one_minus_src_color',
+									'src_alpha', 'one_minus_src_alpha', 'dst_alpha',
+									'one_minus_dst_alpha', 'dst_color', 'one_minus_dst_color',
+									'src_alpha_saturate'];
 	var startColour:ColorHSV = new ColorHSV(60, 1, 0.5, 1);
 	var endColour:ColorHSV = new ColorHSV(0, 1, 0.5, 0);
-
-	var loadButton:Button;
-	var saveButton:Button;
-
-	var uiFont:BitmapFont;
-	var uiFont_2x:BitmapFont;
+	
+	// UI stuff
+    var rendering:LuxeMintRender;
+    var layout:Margins;
+    var canvas:Canvas;
+    var controls:StringMap<Control>;
+    
+    // examples
+	var examples:Array<String> = ['blockyflame', 'fireflies', 'snow', 'fireworks'];
+	var exampleIDX:Int = -1;
 
 	override function ready() {
-		// load the parcel
-		var load = Luxe.resources.load_json('assets/parcel.json');
-
-		load.then(function(json:JSONResource){
-			var parcel = new Parcel();
-			parcel.from_json(json.asset.json);
-
-			// show a loading bar
-			// use a fancy custom loading bar (https://github.com/FuzzyWuzzie/CustomLuxePreloader)
-			new DigitalCircleParcelProgress({
-				parcel: parcel,
-				oncomplete: assetsLoaded,
-			});
-
-			// start loading!
-			parcel.load();
-		});
-	} //ready
-
-	function assetsLoaded(_) {
-
+		instance = this;
 		initParticleSystem();
 		initBatchers();
 		initUI();
-		initSliders();
-		initButtons();
+	} //ready
 
-	} // assetsLoaded
-
-	function initParticleSystem(){
+	function initParticleSystem() {
 		// create the particle system
 		particles = new ParticleSystem({name: 'particles'});
 
@@ -91,8 +81,8 @@ class Main extends luxe.Game {
 			start_size_random: new Vector(0, 0),
 			end_size: new Vector(8, 8),
 			end_size_random: new Vector(0, 0),
-			start_color: startColour.toColor(),
-			end_color: endColour.toColor()
+			start_color: startColour,
+			end_color: endColour
 		}
 		particles.add_emitter(template);
 		emitter = particles.get('prototyping');
@@ -100,8 +90,7 @@ class Main extends luxe.Game {
 		particles.pos = Luxe.screen.mid;
 	}
 
-	function reloadParticleSystem(loadedOptions:ParticleEmitterOptions){
-
+	function reloadParticleSystem(loadedOptions:ParticleEmitterOptions) {
 		// Clear
 		particles.emitters.remove('prototyping');
 		emitter.kill();
@@ -114,10 +103,53 @@ class Main extends luxe.Game {
 
 		emitter = particles.get('prototyping');
 		emitter.init();
+		
+		reloadSliders();
+		trace("Reload complete!");
+	}
+	
+	function reloadSliders() {
+		cast(controls.get('emittime'), mint.Slider).value = emitter.emit_time;
+		cast(controls.get('emitcount'), mint.Slider).value = emitter.emit_count;
+		cast(controls.get('emitdirection'), mint.Slider).value = emitter.direction;
+		cast(controls.get('emitdirection_random'), mint.Slider).value = emitter.direction_random;
+		cast(controls.get('emitspeed'), mint.Slider).value = emitter.speed;
+		cast(controls.get('emitspeed_random'), mint.Slider).value = emitter.speed_random;
+		cast(controls.get('life'), mint.Slider).value = emitter.life;
+		cast(controls.get('life_random'), mint.Slider).value = emitter.life_random;
+		cast(controls.get('startsizex'), mint.Slider).value = emitter.start_size.x;
+		cast(controls.get('startsizey'), mint.Slider).value = emitter.start_size.y;
+		cast(controls.get('startsizex_random'), mint.Slider).value = emitter.start_size_random.x;
+		cast(controls.get('startsizey_random'), mint.Slider).value = emitter.start_size_random.y;
+		cast(controls.get('endsizex'), mint.Slider).value = emitter.end_size.x;
+		cast(controls.get('endsizey'), mint.Slider).value = emitter.end_size.y;
+		cast(controls.get('endsizex_random'), mint.Slider).value = emitter.end_size_random.x;
+		cast(controls.get('endsizey_random'), mint.Slider).value = emitter.end_size_random.y;
+		cast(controls.get('gravityx'), mint.Slider).value = emitter.gravity.x;
+		cast(controls.get('gravityy'), mint.Slider).value = emitter.gravity.y;
+		cast(controls.get('starthue'), mint.Slider).value = startColour.h;
+		cast(controls.get('startsaturation'), mint.Slider).value = startColour.s;
+		cast(controls.get('startvalue'), mint.Slider).value = startColour.v;
+		cast(controls.get('startalpha'), mint.Slider).value = startColour.a;
+		cast(controls.get('endhue'), mint.Slider).value = endColour.h;
+		cast(controls.get('endsaturation'), mint.Slider).value = endColour.s;
+		cast(controls.get('endvalue'), mint.Slider).value = endColour.v;
+		cast(controls.get('endalpha'), mint.Slider).value = endColour.a;
+		// TODO: blending
+		cast(controls.get('startrotation'), mint.Slider).value = emitter.zrotation;
+		cast(controls.get('startrotation_random'), mint.Slider).value = emitter.rotation_random;
+		cast(controls.get('endrotation'), mint.Slider).value = emitter.end_rotation;
+		cast(controls.get('endrotation_random'), mint.Slider).value = emitter.end_rotation_random;
+		cast(controls.get('rotationoffset'), mint.Slider).value = emitter.rotation_offset;
+		cast(controls.get('posoffsetx'), mint.Slider).value = emitter.pos_offset.x;
+		cast(controls.get('posoffsety'), mint.Slider).value = emitter.pos_offset.y;
+		cast(controls.get('pos_randomx'), mint.Slider).value = emitter.pos_random.x;
+		cast(controls.get('pos_randomy'), mint.Slider).value = emitter.pos_random.y;
 	}
 
-	function initBatchers(){
-
+	function initBatchers() {
+    blend_src = phoenix.Batcher.BlendMode.src_alpha;
+    blend_dst = phoenix.Batcher.BlendMode.one_minus_src_alpha;
 		Luxe.renderer.batcher.add_group(5,
 			function(b:phoenix.Batcher) {
 				Luxe.renderer.blend_mode(blend_src, blend_dst);
@@ -126,161 +158,544 @@ class Main extends luxe.Game {
 				Luxe.renderer.blend_mode();
 			}
 		);
-
 	}
 
-	function initUI(){
+	function initUI() {
+        // set up mint
+        rendering = new LuxeMintRender();
+        layout = new Margins();
+        
+        // create a canvas
+        canvas = new Canvas({
+            x: 0, y: 0, w: Luxe.screen.width, h: Luxe.screen.height,
+            rendering: rendering,
+            options: { color:new Color(1, 1, 1, 0.0) },
+        });
 
-		// Grab the font
-		uiFont = Luxe.resources.font('assets/Minecraftia.fnt');
-		for(t in uiFont.pages.iterator()) {
-			t.filter_min = t.filter_mag = FilterType.nearest;
-		}
-		ParticlePropertyControl.uiFont = uiFont;
+        // create some controls
+        controls = new StringMap<Control>();
+        
+        controls.set('emissionwindow', new mint.Window({
+        	parent: canvas,
+        	name: 'emissionwindow',
+        	title: 'Emission',
+        	x: 10, y: 10, w: 400, h: 202,
+        	collapsible: true,
+        	resizable: true,
+        	focusable: true,
+        	closable: false,
+        	moveable: true
+        }));
+        makeSlider('emittime', 'Period',  controls.get('emissionwindow'),
+                   2, 26, 120, 396, 20,
+                   emitter.emit_time, 0, 2, 0.01,
+                   function(val:Float, _) {
+                   		emitter.emit_time = val;
+                   }
+        );
+        makeSlider('emitcount', 'Count',  controls.get('emissionwindow'),
+                   2, 48, 120, 396, 20,
+                   emitter.emit_count, 0, 30, 1,
+                   function(val:Float, _) {
+                   		emitter.emit_count = Std.int(val);
+                   }
+        );
+        makeSlider('emitdirection', 'Direction',  controls.get('emissionwindow'),
+                   2, 70, 120, 396, 20,
+                   emitter.direction, 0, 360, 1,
+                   function(val:Float, _) {
+                   		emitter.direction = val;
+                   }
+        );
+        makeSlider('emitdirection_random', 'Direction Random',  controls.get('emissionwindow'),
+                   2, 92, 120, 396, 20,
+                   emitter.direction_random, 0, 360, 1,
+                   function(val:Float, _) {
+                   		emitter.direction_random = val;
+                   }
+        );
+        makeSlider('emitspeed', 'Speed',  controls.get('emissionwindow'),
+                   2, 114, 120, 396, 20,
+                   emitter.speed, 0, 10, 0.01,
+                   function(val:Float, _) {
+                   		emitter.speed = val;
+                   }
+        );
+        makeSlider('emitspeed_random', 'Speed Random',  controls.get('emissionwindow'),
+                   2, 136, 120, 396, 20,
+                   emitter.speed_random, -10, 10, 0.01,
+                   function(val:Float, _) {
+                   		emitter.speed_random = val;
+                   }
+        );
+        makeSlider('life', 'Life',  controls.get('emissionwindow'),
+                   2, 158, 120, 396, 20,
+                   emitter.life, 0, 10, 0.01,
+                   function(val:Float, _) {
+                   		emitter.life = val;
+                   }
+        );
+        makeSlider('life_random', 'Life Random',  controls.get('emissionwindow'),
+                   2, 180, 120, 396, 20,
+                   emitter.life_random, -10, 10, 0.01,
+                   function(val:Float, _) {
+                   		emitter.life_random = val;
+                   }
+        );
+        
 
-		// Setup the UI texture
-		var uiTexture:Texture = Luxe.resources.texture('assets/ui.png');
-		uiTexture.filter_min = uiTexture.filter_mag = FilterType.nearest;
-		ParticlePropertyControl.uiTexture = uiTexture;
-
-
-	}
-
-	function initSliders(){
-
-		// create a bunch of sliders for the different properties
-		sliders.push(new ParticlePropertyControl("Emit Time", 0, 1, emitter.emit_time, function(_v:Float) { emitter.emit_time = _v; }));
-		sliders.push(new ParticlePropertyControl("Emit Count", 0, 10, emitter.emit_count, function(_v:Float) { emitter.emit_count = Std.int(_v); }));
-
-		sliders.push(new ParticlePropertyControl("Direction", 0, 360, emitter.direction, function(_v:Float) { emitter.direction = _v; }));
-		sliders.push(new ParticlePropertyControl("Direction Random", 0, 360, emitter.direction_random, function(_v:Float) { emitter.direction_random = _v; }));
-
-		sliders.push(new ParticlePropertyControl("Speed", 0, 10, emitter.speed, function(_v:Float) { emitter.speed = _v; }));
-		sliders.push(new ParticlePropertyControl("Speed Random", 0, 10, emitter.speed_random, function(_v:Float) { emitter.speed_random = _v; }));
-		sliders.push(new ParticlePropertyControl("End Speed", 0, 10, emitter.end_speed, function(_v:Float) { emitter.end_speed = _v; }));
-
-		sliders.push(new ParticlePropertyControl("Life", 0, 5, emitter.life, function(_v:Float) { emitter.life = _v; }));
-		sliders.push(new ParticlePropertyControl("Life Random", 0, 5, emitter.life_random, function(_v:Float) { emitter.life_random = _v; }));
-
-		sliders.push(new ParticlePropertyControl("Rotation", 0, 360, emitter.zrotation, function(_v:Float) { emitter.zrotation = _v; }));
-		sliders.push(new ParticlePropertyControl("Rotation Random", 0, 360, emitter.rotation_random, function(_v:Float) { emitter.rotation_random = _v; }));
-
-		sliders.push(new ParticlePropertyControl("End Rotation", 0, 360, emitter.end_rotation, function(_v:Float) { emitter.end_rotation = _v; }));
-		sliders.push(new ParticlePropertyControl("End Rotation Random", 0, 360, emitter.end_rotation_random, function(_v:Float) { emitter.end_rotation_random = _v; }));
-
-		sliders.push(new ParticlePropertyControl("Rotation Offset", 0, 360, emitter.rotation_offset, function(_v:Float) { emitter.rotation_offset = _v; }));
-
-		sliders.push(new ParticlePropertyControl("Pos Offset X", -100, 100, emitter.pos_offset.x, function(_v:Float) { emitter.pos_offset.x = _v; }));
-		sliders.push(new ParticlePropertyControl("Pos Offset Y", -100, 100, emitter.pos_offset.y, function(_v:Float) { emitter.pos_offset.y = _v; }));
-
-		sliders.push(new ParticlePropertyControl("Pos Random X", 0, 100, emitter.pos_random.x, function(_v:Float) { emitter.pos_random.x = _v; }));
-		sliders.push(new ParticlePropertyControl("Pos Random Y", 0, 100, emitter.pos_random.y, function(_v:Float) { emitter.pos_random.y = _v; }));
-
-		sliders.push(new ParticlePropertyControl("Gravity X", -100, 100, emitter.gravity.x, function(_v:Float) { emitter.gravity.x = _v; }));
-		sliders.push(new ParticlePropertyControl("Gravity Y", -100, 100, emitter.gravity.y, function(_v:Float) { emitter.gravity.y = _v; }));
-
-		sliders.push(new ParticlePropertyControl("Start Size X", 0, 64, emitter.start_size.x, function(_v:Float) { emitter.start_size.x = _v; }));
-		sliders.push(new ParticlePropertyControl("Start Size Y", 0, 64, emitter.start_size.y, function(_v:Float) { emitter.start_size.y = _v; }));
-
-		sliders.push(new ParticlePropertyControl("Start Size Random X", 0, 64, emitter.start_size_random.x, function(_v:Float) { emitter.start_size_random.x = _v; }));
-		sliders.push(new ParticlePropertyControl("Start Size Random Y", 0, 64, emitter.start_size_random.y, function(_v:Float) { emitter.start_size_random.y = _v; }));
-
-		sliders.push(new ParticlePropertyControl("End Size X", 0, 64, emitter.end_size.x, function(_v:Float) { emitter.end_size.x = _v; }));
-		sliders.push(new ParticlePropertyControl("End Size Y", 0, 64, emitter.end_size.y, function(_v:Float) { emitter.end_size.y = _v; }));
-
-		sliders.push(new ParticlePropertyControl("End Size Random X", 0, 64, emitter.end_size_random.x, function(_v:Float) { emitter.end_size_random.x = _v; }));
-		sliders.push(new ParticlePropertyControl("End Size Random Y", 0, 64, emitter.end_size_random.y, function(_v:Float) { emitter.end_size_random.y = _v; }));
-
-		sliders.push(new ParticlePropertyControl("Start Hue", 0, 360, startColour.h, function(_v:Float) {
-			startColour.h = _v;
-			emitter.start_color = startColour.toColor();
+        controls.set('sizewindow', new mint.Window({
+        	parent: canvas,
+        	name: 'sizewindow',
+        	title: 'Size',
+        	x: 10, y: 222, w: 400, h: 202,
+        	collapsible: true,
+        	resizable: true,
+        	focusable: true,
+        	closable: false,
+        	moveable: true
+        }));
+        makeSlider('startsizex', 'Start Size (x)',  controls.get('sizewindow'),
+                   2, 26, 120, 396, 20,
+                   emitter.start_size.x, 0, 128, 0.1,
+                   function(val:Float, _) {
+                   		emitter.start_size.x = val;
+                   }
+        );
+        makeSlider('startsizey', 'Start Size (y)',  controls.get('sizewindow'),
+                   2, 48, 120, 396, 20,
+                   emitter.start_size.y, 0, 128, 0.1,
+                   function(val:Float, _) {
+                   		emitter.start_size.y = Std.int(val);
+                   }
+        );
+        makeSlider('startsizex_random', 'Start Size (x) Random',  controls.get('sizewindow'),
+                   2, 70, 120, 396, 20,
+                   emitter.start_size_random.x, -128, 128, 0.1,
+                   function(val:Float, _) {
+                   		emitter.start_size_random.x = val;
+                   }
+        );
+        makeSlider('startsizey_random', 'Start Size (y) Random',  controls.get('sizewindow'),
+                   2, 92, 120, 396, 20,
+                   emitter.start_size_random.y, -128, 128, 0.1,
+                   function(val:Float, _) {
+                   		emitter.start_size_random.y = val;
+                   }
+        );
+        makeSlider('endsizex', 'End Size (x)',  controls.get('sizewindow'),
+                   2, 114, 120, 396, 20,
+                   emitter.end_size.x, 0, 128, 0.1,
+                   function(val:Float, _) {
+                   		emitter.end_size.x = val;
+                   }
+        );
+        makeSlider('endsizey', 'End Size (y)',  controls.get('sizewindow'),
+                   2, 136, 120, 396, 20,
+                   emitter.end_size.y, 0, 128, 0.1,
+                   function(val:Float, _) {
+                   		emitter.end_size.y = Std.int(val);
+                   }
+        );
+        makeSlider('endsizex_random', 'End Size (x) Random',  controls.get('sizewindow'),
+                   2, 158, 120, 396, 20,
+                   emitter.end_size_random.x, -128, 128, 0.1,
+                   function(val:Float, _) {
+                   		emitter.end_size_random.x = val;
+                   }
+        );
+        makeSlider('endsizey_random', 'End Size (y) Random',  controls.get('sizewindow'),
+                   2, 180, 120, 396, 20,
+                   emitter.end_size_random.y, -128, 128, 0.1,
+                   function(val:Float, _) {
+                   		emitter.end_size_random.y = val;
+                   }
+        );
+        
+        
+        controls.set('gravitywindow', new mint.Window({
+        	parent: canvas,
+        	name: 'gravitywindow',
+        	title: 'Gravity',
+        	x: 10, y: 434, w: 400, h: 70,
+        	collapsible: true,
+        	resizable: true,
+        	focusable: true,
+        	closable: false,
+        	moveable: true
+        }));
+        makeSlider('gravityx', 'Gravity (x)',  controls.get('gravitywindow'),
+                   2, 26, 120, 396, 20,
+                   emitter.gravity.x, -128, 128, 0.1,
+                   function(val:Float, _) {
+                   		emitter.gravity.x = val;
+                   }
+        );
+        makeSlider('gravityy', 'Gravity (y)',  controls.get('gravitywindow'),
+                   2, 48, 120, 396, 20,
+                   emitter.gravity.y, -128, 128, 0.1,
+                   function(val:Float, _) {
+                   		emitter.gravity.y = Std.int(val);
+                   }
+        );
+        
+        
+        controls.set('colourwindow', new mint.Window({
+        	parent: canvas,
+        	name: 'colourwindow',
+        	title: 'Colour',
+        	x: Luxe.screen.width - 410, y: 10, w: 400, h: 246,
+        	collapsible: true,
+        	resizable: true,
+        	focusable: true,
+        	closable: false,
+        	moveable: true
+        }));
+        makeSlider('starthue', 'Start Hue',  controls.get('colourwindow'),
+                   2, 26, 120, 396, 20,
+                   startColour.h, 0, 360, 1,
+                   function(val:Float, _) {
+                   		startColour.h = val;
+						emitter.start_color = startColour;
+                   }
+        );
+        makeSlider('startsaturation', 'Start Saturation',  controls.get('colourwindow'),
+                   2, 48, 120, 396, 20,
+                   startColour.s, 0, 1, 0.01,
+                   function(val:Float, _) {
+                   		startColour.s = val;
+						emitter.start_color = startColour;
+                   }
+        );
+        makeSlider('startvalue', 'Start Value',  controls.get('colourwindow'),
+                   2, 70, 120, 396, 20,
+                   startColour.v, 0, 1, 0.01,
+                   function(val:Float, _) {
+                   		startColour.v = val;
+						emitter.start_color = startColour;
+                   }
+        );
+        makeSlider('startalpha', 'Start Alpha',  controls.get('colourwindow'),
+                   2, 92, 120, 396, 20,
+                   startColour.a, 0, 1, 0.01,
+                   function(val:Float, _) {
+                   		startColour.a = val;
+						emitter.start_color = startColour;
+                   }
+        );
+        makeSlider('endhue', 'End Hue',  controls.get('colourwindow'),
+                   2, 114, 120, 396, 20,
+                   endColour.h, 0, 360, 1,
+                   function(val:Float, _) {
+                   		endColour.h = val;
+						emitter.end_color = endColour;
+                   }
+        );
+        makeSlider('endsaturation', 'End Saturation',  controls.get('colourwindow'),
+                   2, 136, 120, 396, 20,
+                   endColour.s, 0, 1, 0.01,
+                   function(val:Float, _) {
+                   		endColour.s = val;
+						emitter.end_color = endColour;
+                   }
+        );
+        makeSlider('endvalue', 'End Value',  controls.get('colourwindow'),
+                   2, 158, 120, 396, 20,
+                   endColour.v, 0, 1, 0.01,
+                   function(val:Float, _) {
+                   		endColour.v = val;
+						emitter.end_color = endColour;
+                   }
+        );
+        makeSlider('endalpha', 'End Alpha',  controls.get('colourwindow'),
+                   2, 180, 120, 396, 20,
+                   endColour.a, 0, 1, 0.01,
+                   function(val:Float, _) {
+                   		endColour.a = val;
+						emitter.end_color = endColour;
+                   }
+        );
+        makeDropdown('blend_src', 'SRC Blending',  controls.get('colourwindow'),
+                   2, 202, 396, 20,
+                   blendModes,
+                   function(idx:Int, c:Control, e:MouseEvent) {
+                   		 blend_src = idx;
+                   }, true
+        );
+        makeDropdown('blend_dst', 'DST Blending',  controls.get('colourwindow'),
+                   2, 224, 396, 20,
+                   blendModes,
+                   function(idx:Int, c:Control, e:MouseEvent) {
+                   		 blend_dst = idx;
+                   }, true
+        );
+        
+        
+        controls.set('transformwindow', new mint.Window({
+        	parent: canvas,
+        	name: 'transformwindow',
+        	title: 'Transform',
+        	x: Luxe.screen.width - 410, y: 266, w: 400, h: 222,
+        	collapsible: true,
+        	resizable: true,
+        	focusable: true,
+        	closable: false,
+        	moveable: true
+        }));
+        makeSlider('startrotation', 'Start Rotation',  controls.get('transformwindow'),
+                   2, 26, 120, 396, 20,
+                   emitter.zrotation, 0, 360, 1,
+                   function(val:Float, _) {
+                   		emitter.zrotation = val;
+                   }
+        );
+        makeSlider('startrotation_random', 'Start Rotation Random',  controls.get('transformwindow'),
+                   2, 48, 120, 396, 20,
+                   emitter.rotation_random, -360, 360, 1,
+                   function(val:Float, _) {
+                   		emitter.rotation_random = val;
+                   }
+        );
+        makeSlider('endrotation', 'End Rotation',  controls.get('transformwindow'),
+                   2, 70, 120, 396, 20,
+                   emitter.end_rotation, 0, 360, 1,
+                   function(val:Float, _) {
+                   		emitter.end_rotation = val;
+                   }
+        );
+        makeSlider('endrotation_random', 'End Rotation Random',  controls.get('transformwindow'),
+                   2, 92, 120, 396, 20,
+                   emitter.end_rotation_random, -360, 360, 1,
+                   function(val:Float, _) {
+                   		emitter.end_rotation_random = val;
+                   }
+        );
+        makeSlider('rotationoffset', 'Rotation Offset',  controls.get('transformwindow'),
+                   2, 114, 120, 396, 20,
+                   emitter.rotation_offset, -360, 360, 1,
+                   function(val:Float, _) {
+                   		emitter.rotation_offset = val;
+                   }
+        );
+        makeSlider('posoffsetx', 'Position Offset (x)',  controls.get('transformwindow'),
+                   2, 136, 120, 396, 20,
+                   emitter.pos_offset.x, -128, 128, 1,
+                   function(val:Float, _) {
+                   		emitter.pos_offset.x = val;
+                   }
+        );
+        makeSlider('posoffsety', 'Position Offset (y)',  controls.get('transformwindow'),
+                   2, 158, 120, 396, 20,
+                   emitter.pos_offset.y, -128, 128, 1,
+                   function(val:Float, _) {
+                   		emitter.pos_offset.y = val;
+                   }
+        );
+        makeSlider('pos_randomx', 'Position Random (x)',  controls.get('transformwindow'),
+                   2, 180, 120, 396, 20,
+                   emitter.pos_random.x, -128, 128, 1,
+                   function(val:Float, _) {
+                   		emitter.pos_random.x = val;
+                   }
+        );
+        makeSlider('pos_randomy', 'Position Random (y)',  controls.get('transformwindow'),
+                   2, 202, 120, 396, 20,
+                   emitter.pos_random.y, -128, 128, 1,
+                   function(val:Float, _) {
+                   		emitter.pos_random.y = val;
+                   }
+        );
+        
+        
+        controls.set('saveloadwindow', new mint.Window({
+        	parent: canvas,
+        	name: 'saveloadwindow',
+        	title: 'Save / Load',
+        	x: Luxe.screen.width - 410, y: 498, w: 400, h: 114,
+        	collapsible: true,
+        	resizable: true,
+        	focusable: true,
+        	closable: false,
+        	moveable: true
+        }));
+		controls.set('particlesname_label', new mint.Label({
+			name: 'particlesname_label',
+			parent: controls.get('saveloadwindow'),
+			text_size: 12,
+			x: 2, y: 26, w: 100, h: 20,
+			text: 'Particles Name:',
+			align: TextAlign.left, align_vertical: TextAlign.center
 		}));
-		sliders.push(new ParticlePropertyControl("Start Saturation", 0, 1, startColour.s, function(_v:Float) {
-			startColour.s = _v;
-			emitter.start_color = startColour.toColor();
+		controls.set('particlesname_textedit', new mint.TextEdit({
+			name: 'particlesname_textedit',
+			parent: controls.get('saveloadwindow'),
+			text_size: 12,
+			x: 104, y: 26, w: 294, h: 20,
+			text: 'blockyflame'
 		}));
-		sliders.push(new ParticlePropertyControl("Start Alpha", 0, 1, startColour.a, function(_v:Float) {
-			startColour.a = _v;
-			emitter.start_color = startColour.toColor();
+		controls.set('examples_loadjsonbtn', new mint.Button({
+			name: 'examples_loadjsonbtn',
+			parent: controls.get('saveloadwindow'),
+			text_size: 12,
+			x: 2, y: 48, w: 396, h: 20,
+			text: 'Load (from JSON)',
+			onclick: function(_, _) {
+				#if web
+					untyped openLoadWindow();
+				#elseif desktop
+					// Get the path where to save file
+					var path = Luxe.snow.io.module.dialog_open('Open particle file', [{extension:'json', desc:'JSON'}]);
+					if(path.length <= 0) return;
+					// Save it
+					var content:String = sys.io.File.getContent(path);
+					
+					loadFromJSONText(content);
+					cast(controls.get('particlesname_textedit'), mint.TextEdit).text = 'untitled';
+				#end
+			}
 		}));
-
-		sliders.push(new ParticlePropertyControl("End Hue", 0, 360, endColour.h, function(_v:Float) {
-			endColour.h = _v;
-			emitter.end_color = endColour.toColor();
+		controls.set('examples_savejsonbtn', new mint.Button({
+			name: 'examples_savejsonbtn',
+			parent: controls.get('saveloadwindow'),
+			text_size: 12,
+			x: 2, y: 70, w: 396, h: 20,
+			text: 'Save (to JSON)',
+			onclick: function(_, _) {
+				saveToJSON();
+			}
 		}));
-		sliders.push(new ParticlePropertyControl("End Saturation", 0, 1, endColour.s, function(_v:Float) {
-			endColour.s = _v;
-			emitter.start_color = startColour.toColor();
+		controls.set('examples_label', new mint.Label({
+			name: 'examples_label',
+			parent: controls.get('saveloadwindow'),
+			text_size: 12,
+			x: 2, y: 92, w: 50, h: 20,
+			text: 'Example:',
+			align: TextAlign.right, align_vertical: TextAlign.center
 		}));
-		sliders.push(new ParticlePropertyControl("End Alpha", 0, 1, endColour.a, function(_v:Float) {
-			endColour.a = _v;
-			emitter.end_color = endColour.toColor();
+        makeDropdown('example_dropdown', 'select...',  controls.get('saveloadwindow'),
+                   54, 92, 200, 20,
+                   examples,
+                   function(idx:Int, c:Control, e:MouseEvent) {
+                   		 exampleIDX = idx;
+                   		 cast(controls.get('examples_loadbtn'), mint.Button).mouse_input = true;
+                   }, false
+        );
+		controls.set('examples_loadbtn', new mint.Button({
+			name: 'examples_loadbtn',
+			parent: controls.get('saveloadwindow'),
+			text_size: 12,
+			x: 256, y: 92, w: 142, h: 20,
+			text: 'Load!',
+			mouse_input: false,
+			onclick: function(_, _) {
+				var parcel:Parcel = new Parcel({
+					jsons: [{ id: 'assets/example_${examples[exampleIDX]}.json' }]
+				});
+				new ParcelProgress({
+					parcel: parcel,
+					background: new Color(0, 0, 0, 0),
+					oncomplete: function(_) {
+						loadFromJSON(Luxe.resources.json('assets/example_${examples[exampleIDX]}.json').asset.json);
+						cast(controls.get('particlesname_textedit'), mint.TextEdit).text = examples[exampleIDX];
+					}
+				});
+				parcel.load();
+			}
 		}));
-		sliders.push(new BlendModeControl("SRC", 4, function(_v:Float) { blend_src = Std.int(_v); }));
-		sliders.push(new BlendModeControl("DST", 1, function(_v:Float) { blend_dst = Std.int(_v); }));
-	}
-
-	function initButtons() {
-
-		// create a button to save
-		var tex_btnNormal:Texture = Luxe.resources.texture('assets/btn_normal.png');
-		tex_btnNormal.filter_mag = tex_btnNormal.filter_min = FilterType.nearest;
-		var tex_btnHover:Texture = Luxe.resources.texture('assets/btn_hover.png');
-		tex_btnHover.filter_mag = tex_btnHover.filter_min = FilterType.nearest;
-		var tex_btnPressed:Texture = Luxe.resources.texture('assets/btn_pressed.png');
-		tex_btnPressed.filter_mag = tex_btnPressed.filter_min = FilterType.nearest;
-
-		loadButton = new Button({
-			normalTexture: tex_btnNormal,
-			hoverTexture: tex_btnHover,
-			pressedTexture: tex_btnPressed,
-			onclicked: onLoadClicked,
-			top: 8,
-			left: 15,
-			right: 16,
-			bottom: 10,
-			pos: new Vector(Luxe.screen.mid.x, Luxe.screen.h - 80),
-			text: new Text({
-				text: "Load (from JSON)",
-				color: new Color(1, 1, 1, 1),
-				point_size: 16,
-				font: uiFont
-			})
+	} // initUI
+	
+	inline function makeSlider(name:String, label:String, parent:Control,
+	                           x:Float, y:Float, labelW:Float, w:Float, h:Float,
+	                           value:Float, min:Float, max:Float, step:Float,
+	                           ?onchange:Float->Float->Void) {
+		// make a string label describing what this is
+		var label:mint.Label = new mint.Label({
+			name: name + '_label',
+			parent: parent,
+			text_size: 12,
+			x: x, y: y, w: labelW, h: h,
+			text: label + ':',
+			align: TextAlign.right, align_vertical: TextAlign.center
 		});
-
-		saveButton = new Button({
-			normalTexture: tex_btnNormal,
-			hoverTexture: tex_btnHover,
-			pressedTexture: tex_btnPressed,
-			onclicked: onSaveClicked,
-			top: 8,
-			left: 15,
-			right: 16,
-			bottom: 10,
-			pos: new Vector(Luxe.screen.mid.x, Luxe.screen.h - 32),
-			text: new Text({
-				text: "Save (to JSON)",
-				color: new Color(1, 1, 1, 1),
-				point_size: 16,
-				font: uiFont
-			})
-		});
-	}
-
-	function onLoadClicked() {
+		controls.set(name + '_label', label);
 		
-#if desktop
-		// Get the path where to save file
-		var path = Luxe.snow.io.module.dialog_open('Open particle file', [{extension:'json', desc:'JSON'}]);
+		// create the actual slider
+		var slider:mint.Slider = new mint.Slider({
+			name: name,
+			parent: parent,
+			x: x + labelW + 2, y: y, w: w - labelW - 2, h: h,
+			value: value, min: min, max: max, step: step,
+			vertical: false
+		});
+		controls.set(name, slider);
+		
+		// create an indicator to show the actual value
+		var indicator:mint.Label = new mint.Label({
+			name: name + '_indicator',
+			parent: slider,
+			text_size: 12,
+			x: 0, y: 0, w: w - labelW - 2, h: h,
+			text: '${slider.value}',
+			align: TextAlign.center, align_vertical: TextAlign.center
+		});
+		controls.set(name + '_indicator', slider);
+		
+		// update the indicator!
+		slider.onchange.listen(function(val:Float, _) {
+			indicator.text = '$val';
+		});
+		
+		// add the custom onchange callback
+		slider.onchange.listen(onchange);
+	} // makeSlider
+	
+	inline function makeDropdown(name:String, label:String, parent:Control,
+	                             x:Float, y:Float, w:Float, h:Float,
+	                             items:Array<String>,
+	                             onchange:Int->Control->MouseEvent->Void,
+	                             prependLabel:Bool) {
+		var dropdown:mint.Dropdown = new mint.Dropdown({
+			parent: parent,
+			name: name, text: label,
+			x: x, y: y, w: w, h: h
+		});
+		controls.set(name, dropdown);
 
-		if(path.length <= 0) return;
+		var first:Bool = true;
+		for(item in items) {
+            dropdown.add_item(
+                new mint.Label({
+                    parent: dropdown, text: '$item', align:TextAlign.left,
+                    name: '$name-$item', w: w - 20, h: h, text_size: 14
+                }),
+                10, (first) ? 0 : 10
+            );
+            if(first) {
+            	first = false;
+            }
+		}
 
-		// Save it
-		var content = sys.io.File.getContent(path);
+		dropdown.onselect.listen(function(idx:Int,_,_) { dropdown.label.text = (prependLabel ? (label + ": ") : '') + items[idx]; });
+		dropdown.onselect.listen(onchange);
+	} // makeDropdown
 
-		var json = haxe.Json.parse(content);
-
+	#if web	
+		@:expose("loadFromJSONTextWindow")
+		static function loadFromJSONTextWindow(text:String) {
+			instance.loadFromJSONText(text);
+		}
+	#end
+	
+	function loadFromJSONText(text:String) {
+		// parse the JSON
+		var json:Dynamic = haxe.Json.parse(text);
+		loadFromJSON(json);
+	}
+	
+	function loadFromJSON(json:Dynamic) {
 		// grab loaded particle values
+		startColour = new ColorHSV(json.start_color.h, json.start_color.s, json.start_color.v, json.start_color.a);
+		endColour = new ColorHSV(json.end_color.h, json.end_color.s, json.end_color.v, json.end_color.a);
 		var loaded:ParticleEmitterOptions = {
 			emit_time: json.emit_time,
 			emit_count: json.emit_count,
@@ -303,23 +718,16 @@ class Main extends luxe.Game {
 			start_size_random: new Vector(json.start_size_random.x, json.start_size_random.y),
 			end_size: new Vector(json.end_size.x, json.end_size.y),
 			end_size_random: new Vector(json.end_size_random.x, json.end_size_random.y),
-			start_color: new Color(json.start_color.r, json.start_color.g, json.start_color.b, json.start_color.a),
-			end_color: new Color(json.end_color.r, json.end_color.g, json.end_color.b, json.end_color.a)
+			start_color: startColour,
+			end_color: endColour
 		};
-		// TODO: Also grab blend modes
-		// blend_src = json.blend_src;
-		// blend_dst = json.blend_dst;
+		blend_src = json.blend_src;
+		blend_dst = json.blend_dst;
 
 		reloadParticleSystem(loaded);
-
-		
-#else
-		Luxe.snow.window.simple_message("Sorry, this functionality isn't in yet!", "TODO");
-#end
-
-	}
-
-	function onSaveClicked() {
+	} // loadFromJSON
+	
+	function saveToJSON() {
 		// grab the emitter info and store it in a template
 		var template:Dynamic = {
 			emit_time: emitter.emit_time,
@@ -350,22 +758,64 @@ class Main extends luxe.Game {
 		};
 
 		var json = haxe.Json.stringify(template, null, '	');
+		
+		#if web
+			//untyped openWindow(json);
+			var name:String = cast(controls.get('particlesname_textedit'), mint.TextEdit).text;
+			untyped saveJSON(name + '.json', json);
+		#elseif desktop
+			// Get the path where to save file
+			var path = Luxe.snow.io.module.dialog_save('Save particle file', {extension:'json'});
+			if(path.length <= 0) return;
+			// Save it
+			sys.io.File.saveContent(path, json);
+		#end
+	} // saveToJSON
 
-#if web
+    override function config(config:luxe.AppConfig) {
 
-		untyped openWindow(json);
+        #if web
+          config.window.fullscreen = true;
+        #end
 
-#elseif desktop
+        return config;
 
-		// Get the path where to save file
-		var path = Luxe.snow.io.module.dialog_save('Save particle file', {extension:'json'});
+    } //config
 
-		if(path.length <= 0) return;
+    override function onmousemove(e) {
+        if(canvas != null) canvas.mousemove(Convert.mouse_event(e));
+    } // onmousemove
 
-		// Save it
-		sys.io.File.saveContent(path, json);
+    override function onmousewheel(e) {
+       if(canvas != null) canvas.mousewheel(Convert.mouse_event(e));
+    } // onmousewheel
 
-#end
-	} // onSaveClicked
+    override function onmouseup(e) {
+       if(canvas != null) canvas.mouseup(Convert.mouse_event(e));
+    } // onmouseup
+
+    override function onmousedown(e) {
+       if(canvas != null) canvas.mousedown(Convert.mouse_event(e));
+    } // onmousedown
+
+    override function onkeydown(e:luxe.Input.KeyEvent) {
+       if(canvas != null) canvas.keydown(Convert.key_event(e));
+    } // onkeydown
+
+    override function ontextinput(e:luxe.Input.TextEvent) {
+       if(canvas != null) canvas.textinput(Convert.text_event(e));
+    } // ontextinput
+
+    override function onkeyup(e:luxe.Input.KeyEvent) {
+       if(canvas != null) canvas.keyup(Convert.key_event(e));
+    } // onkeyup
+
+    override function onrender() {
+       if(canvas != null) canvas.render();
+    } // onrender
+
+    override function update(dt:Float) {
+       if(canvas != null) canvas.update(dt);
+    } // update
 
 } //Main

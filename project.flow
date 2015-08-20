@@ -1,38 +1,41 @@
 {
-
   luxe:{
     window: {
-      width:700,
-      height:700,
+      width:1280,
+      height:640,
       title:'Particle Designer',
-      fullscreen:false,
-      resizable:true,
-      borderless:false
     }
   },
 
   project : {
     name : 'Luxe Particle Designer',
-    version : '0.0.1',
+    version : '0.1.0-alpha+0',
     author : 'FuzzyWuzzie',
 
     app : {
       name : 'LuxeParticleDesigner',
-      package : 'com.blazingmammothgames.luxe'
+      package : 'com.blazingmammothgames.luxeparticledesigner',
+      web : {
+          libs : {
+            Blob: 'Blob.js',
+            FileSave: 'FileSaver.min.js'
+          }
+      }
     },
 
     build : {
       dependencies : {
-        luxe : '*'
+        luxe : '*',
+        mint : '*'
       }
     },
 
     files : {
       config : 'config.json',
       assets : 'assets/',
-      index : { path:'custom_index.html => index.html', template:'project', not_listed:true }
+      index : { path:'custom_index.html => index.html', template:'project', not_listed:true },
+      Blob : 'Blob.js',
+      FileSaver : 'FileSaver.min.js'
     }
-
   }
-
 }

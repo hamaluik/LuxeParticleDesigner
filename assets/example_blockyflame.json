@@ -1,12 +1,12 @@
 {
-    "emit_time": 0.6830357142857143,
+    "emit_time": 0.05,
     "emit_count": 1,
     "direction": 0,
-    "direction_random": 360,
-    "speed": 0.5803571428571429,
+    "direction_random": 0,
+    "speed": 0,
     "speed_random": 0,
     "end_speed": 0,
-    "life": 3.5491071428571432,
+    "life": 0.9,
     "life_random": 0,
     "rotation": 0,
     "rotation_random": 0,
@@ -26,15 +26,15 @@
         "ignore_listeners": false,
         "w": 0,
         "z": 0,
-        "y": 30.80357142857143,
-        "x": 29.017857142857146
+        "y": 5,
+        "x": 5
     },
     "gravity": {
         "_construct": false,
         "ignore_listeners": false,
         "w": 0,
         "z": 0,
-        "y": -0.8928571428571388,
+        "y": -90,
         "x": 0
     },
     "start_size": {
@@ -42,8 +42,8 @@
         "ignore_listeners": false,
         "w": 0,
         "z": 0,
-        "y": 2,
-        "x": 2
+        "y": 32,
+        "x": 32
     },
     "start_size_random": {
         "_construct": false,
@@ -58,8 +58,8 @@
         "ignore_listeners": false,
         "w": 0,
         "z": 0,
-        "y": 2,
-        "x": 2
+        "y": 8,
+        "x": 8
     },
     "end_size_random": {
         "_construct": false,
@@ -88,7 +88,7 @@
         "refreshing": false,
         "is_hsv": true,
         "is_hsl": false,
-        "a": 0.48660714285714285,
+        "a": 0,
         "b": 0,
         "g": 0,
         "r": 0.5
