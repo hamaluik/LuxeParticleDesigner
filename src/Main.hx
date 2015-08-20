@@ -9,6 +9,8 @@ import luxe.Vector;
 import luxe.Text;
 import luxe.options.ParticleOptions;
 import luxe.resource.Resource;
+import luxe.Parcel;
+import luxe.ParcelProgress;
 
 import mint.Canvas;
 import mint.render.luxe.LuxeMintRender;
@@ -37,6 +39,10 @@ class Main extends luxe.Game {
     var layout:Margins;
     var canvas:Canvas;
     var controls:StringMap<Control>;
+    
+    // examples
+	var examples:Array<String> = ['fireflies'];
+	var exampleIDX:Int = -1;
 
 	override function ready() {
 		initParticleSystem();
@@ -466,49 +472,73 @@ class Main extends luxe.Game {
         	closable: false,
         	moveable: true
         }));
-		controls.set('examples_label', new mint.Label({
-			name: 'examples_label',
-			parent: controls.get('saveloadwindow'),
-			text_size: 12,
-			x: 2, y: 26, w: 50, h: 20,
-			text: 'Example:',
-			align: TextAlign.right, align_vertical: TextAlign.center
-		}));
-        makeDropdown('example_dropdown', '',  controls.get('saveloadwindow'),
-                   54, 26, 200, 20,
-                   ['fireflies'],
-                   function(idx:Int, c:Control, e:MouseEvent) {
-                   		 trace("Not implemented yet!");
-                   }, false
-        );
-		controls.set('examples_loadbtn', new mint.Button({
-			name: 'examples_loadbtn',
-			parent: controls.get('saveloadwindow'),
-			text_size: 12,
-			x: 256, y: 26, w: 142, h: 20,
-			text: 'Load!',
-			onclick: function(_, _) {
-				trace('Not implemented yet!');
-			}
-		}));
 		controls.set('examples_loadjsonbtn', new mint.Button({
 			name: 'examples_loadjsonbtn',
 			parent: controls.get('saveloadwindow'),
 			text_size: 12,
-			x: 2, y: 48, w: 396, h: 20,
+			x: 2, y: 26, w: 396, h: 20,
 			text: 'Load (from JSON)',
 			onclick: function(_, _) {
-				loadFromJSON();
+				#if web
+					Luxe.snow.window.simple_message("Sorry, this functionality isn't in yet!", "TODO");
+				#elseif desktop
+					// Get the path where to save file
+					var path = Luxe.snow.io.module.dialog_open('Open particle file', [{extension:'json', desc:'JSON'}]);
+					if(path.length <= 0) return;
+					// Save it
+					var content:String = sys.io.File.getContent(path);
+					// parse the JSON
+					var json:Dynamic = haxe.Json.parse(content);
+					
+					loadFromJSON(json);
+				#end
 			}
 		}));
 		controls.set('examples_savejsonbtn', new mint.Button({
 			name: 'examples_savejsonbtn',
 			parent: controls.get('saveloadwindow'),
 			text_size: 12,
-			x: 2, y: 70, w: 396, h: 20,
+			x: 2, y: 48, w: 396, h: 20,
 			text: 'Save (to JSON)',
 			onclick: function(_, _) {
 				saveToJSON();
+			}
+		}));
+		controls.set('examples_label', new mint.Label({
+			name: 'examples_label',
+			parent: controls.get('saveloadwindow'),
+			text_size: 12,
+			x: 2, y: 70, w: 50, h: 20,
+			text: 'Example:',
+			align: TextAlign.right, align_vertical: TextAlign.center
+		}));
+        makeDropdown('example_dropdown', '',  controls.get('saveloadwindow'),
+                   54, 70, 200, 20,
+                   examples,
+                   function(idx:Int, c:Control, e:MouseEvent) {
+                   		 exampleIDX = idx;
+                   		 cast(controls.get('examples_loadbtn'), mint.Button).mouse_input = true;
+                   }, false
+        );
+		controls.set('examples_loadbtn', new mint.Button({
+			name: 'examples_loadbtn',
+			parent: controls.get('saveloadwindow'),
+			text_size: 12,
+			x: 256, y: 70, w: 142, h: 20,
+			text: 'Load!',
+			mouse_input: false,
+			onclick: function(_, _) {
+				var parcel:Parcel = new Parcel({
+					jsons: [{ id: 'assets/particles_${examples[exampleIDX]}.json' }]
+				});
+				new ParcelProgress({
+					parcel: parcel,
+					background: new Color(0, 0, 0, 0),
+					oncomplete: function(_) {
+						loadFromJSON(Luxe.resources.json('assets/particles_${examples[exampleIDX]}.json').asset.json);
+					}
+				});
+				parcel.load();
 			}
 		}));
 	} // initUI
@@ -588,22 +618,7 @@ class Main extends luxe.Game {
 		dropdown.onselect.listen(onchange);
 	} // makeDropdown
 	
-	function loadFromJSON() {
-		var content:String = '';
-		#if web
-			Luxe.snow.window.simple_message("Sorry, this functionality isn't in yet!", "TODO");
-			return;
-		#elseif desktop
-			// Get the path where to save file
-			var path = Luxe.snow.io.module.dialog_open('Open particle file', [{extension:'json', desc:'JSON'}]);
-			if(path.length <= 0) return;
-			// Save it
-			content = sys.io.File.getContent(path);
-		#end
-
-		// parse the JSON
-		var json = haxe.Json.parse(content);
-
+	function loadFromJSON(json:Dynamic) {
 		// grab loaded particle values
 		var loaded:ParticleEmitterOptions = {
 			emit_time: json.emit_time,
