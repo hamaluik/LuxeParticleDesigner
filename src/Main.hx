@@ -127,7 +127,7 @@ class Main extends luxe.Game {
         	parent: canvas,
         	name: 'emissionwindow',
         	title: 'Emission',
-        	x: 10, y: 10, w: 400, h: 158,
+        	x: 10, y: 10, w: 400, h: 202,
         	collapsible: true,
         	resizable: true,
         	focusable: true,
@@ -176,13 +176,27 @@ class Main extends luxe.Game {
                    		emitter.speed_random = val;
                    }
         );
+        makeSlider('life', 'Life',  controls.get('emissionwindow'),
+                   2, 158, 120, 396, 20,
+                   emitter.life, 0, 10, 0.01,
+                   function(val:Float, _) {
+                   		emitter.life = val;
+                   }
+        );
+        makeSlider('life_random', 'Life Random',  controls.get('emissionwindow'),
+                   2, 180, 120, 396, 20,
+                   emitter.life_random, -10, 10, 0.01,
+                   function(val:Float, _) {
+                   		emitter.life_random = val;
+                   }
+        );
         
 
         controls.set('sizewindow', new mint.Window({
         	parent: canvas,
         	name: 'sizewindow',
         	title: 'Size',
-        	x: 10, y: 178, w: 400, h: 202,
+        	x: 10, y: 222, w: 400, h: 202,
         	collapsible: true,
         	resizable: true,
         	focusable: true,
@@ -247,11 +261,38 @@ class Main extends luxe.Game {
         );
         
         
+        controls.set('gravitywindow', new mint.Window({
+        	parent: canvas,
+        	name: 'gravitywindow',
+        	title: 'Gravity',
+        	x: 10, y: 434, w: 400, h: 70,
+        	collapsible: true,
+        	resizable: true,
+        	focusable: true,
+        	closable: false,
+        	moveable: true
+        }));
+        makeSlider('gravityx', 'Gravity (x)',  controls.get('gravitywindow'),
+                   2, 26, 120, 396, 20,
+                   emitter.gravity.x, -128, 128, 0.1,
+                   function(val:Float, _) {
+                   		emitter.gravity.x = val;
+                   }
+        );
+        makeSlider('gravityy', 'Gravity (y)',  controls.get('gravitywindow'),
+                   2, 48, 120, 396, 20,
+                   emitter.gravity.y, -128, 128, 0.1,
+                   function(val:Float, _) {
+                   		emitter.gravity.y = Std.int(val);
+                   }
+        );
+        
+        
         controls.set('colourwindow', new mint.Window({
         	parent: canvas,
         	name: 'colourwindow',
         	title: 'Colour',
-        	x: Luxe.screen.width - 410, y: 10, w: 400, h: 202,
+        	x: Luxe.screen.width - 410, y: 10, w: 400, h: 246,
         	collapsible: true,
         	resizable: true,
         	focusable: true,
@@ -274,8 +315,16 @@ class Main extends luxe.Game {
 						emitter.start_color = startColour.toColor();
                    }
         );
-        makeSlider('startalpha', 'Start Alpha',  controls.get('colourwindow'),
+        makeSlider('startvalue', 'Start Value',  controls.get('colourwindow'),
                    2, 70, 120, 396, 20,
+                   startColour.v, 0, 1, 0.01,
+                   function(val:Float, _) {
+                   		startColour.v = val;
+						emitter.start_color = startColour.toColor();
+                   }
+        );
+        makeSlider('startalpha', 'Start Alpha',  controls.get('colourwindow'),
+                   2, 92, 120, 396, 20,
                    startColour.a, 0, 1, 0.01,
                    function(val:Float, _) {
                    		startColour.a = val;
@@ -283,7 +332,7 @@ class Main extends luxe.Game {
                    }
         );
         makeSlider('endhue', 'End Hue',  controls.get('colourwindow'),
-                   2, 92, 120, 396, 20,
+                   2, 114, 120, 396, 20,
                    endColour.h, 0, 360, 1,
                    function(val:Float, _) {
                    		endColour.h = val;
@@ -291,15 +340,23 @@ class Main extends luxe.Game {
                    }
         );
         makeSlider('endsaturation', 'End Saturation',  controls.get('colourwindow'),
-                   2, 114, 120, 396, 20,
+                   2, 136, 120, 396, 20,
                    endColour.s, 0, 1, 0.01,
                    function(val:Float, _) {
                    		endColour.s = val;
 						emitter.end_color = endColour.toColor();
                    }
         );
+        makeSlider('endvalue', 'End Value',  controls.get('colourwindow'),
+                   2, 158, 120, 396, 20,
+                   endColour.v, 0, 1, 0.01,
+                   function(val:Float, _) {
+                   		endColour.v = val;
+						emitter.end_color = endColour.toColor();
+                   }
+        );
         makeSlider('endalpha', 'End Alpha',  controls.get('colourwindow'),
-                   2, 136, 120, 396, 20,
+                   2, 180, 120, 396, 20,
                    endColour.a, 0, 1, 0.01,
                    function(val:Float, _) {
                    		endColour.a = val;
@@ -307,17 +364,93 @@ class Main extends luxe.Game {
                    }
         );
         makeDropdown('blendsrc', 'SRC Blending',  controls.get('colourwindow'),
-                   2, 158, 396, 20,
+                   2, 202, 396, 20,
                    blendModes,
                    function(idx:Int, c:Control, e:MouseEvent) {
                    		 blendSrc = idx;
                    }
         );
         makeDropdown('blenddst', 'DST Blending',  controls.get('colourwindow'),
-                   2, 180, 396, 20,
+                   2, 224, 396, 20,
                    blendModes,
                    function(idx:Int, c:Control, e:MouseEvent) {
                    		 blendDst = idx;
+                   }
+        );
+        
+        
+        controls.set('transformwindow', new mint.Window({
+        	parent: canvas,
+        	name: 'transformwindow',
+        	title: 'Transform',
+        	x: Luxe.screen.width - 410, y: 266, w: 400, h: 222,
+        	collapsible: true,
+        	resizable: true,
+        	focusable: true,
+        	closable: false,
+        	moveable: true
+        }));
+        makeSlider('startrotation', 'Start Rotation',  controls.get('transformwindow'),
+                   2, 26, 120, 396, 20,
+                   emitter.zrotation, 0, 360, 1,
+                   function(val:Float, _) {
+                   		emitter.zrotation = val;
+                   }
+        );
+        makeSlider('startrotation_random', 'Start Rotation Random',  controls.get('transformwindow'),
+                   2, 48, 120, 396, 20,
+                   emitter.rotation_random, -360, 360, 1,
+                   function(val:Float, _) {
+                   		emitter.rotation_random = val;
+                   }
+        );
+        makeSlider('endrotation', 'End Rotation',  controls.get('transformwindow'),
+                   2, 70, 120, 396, 20,
+                   emitter.end_rotation, 0, 360, 1,
+                   function(val:Float, _) {
+                   		emitter.end_rotation = val;
+                   }
+        );
+        makeSlider('endrotation_random', 'End Rotation Random',  controls.get('transformwindow'),
+                   2, 92, 120, 396, 20,
+                   emitter.end_rotation_random, -360, 360, 1,
+                   function(val:Float, _) {
+                   		emitter.end_rotation_random = val;
+                   }
+        );
+        makeSlider('rotationoffset', 'Rotation Offset',  controls.get('transformwindow'),
+                   2, 114, 120, 396, 20,
+                   emitter.rotation_offset, -360, 360, 1,
+                   function(val:Float, _) {
+                   		emitter.rotation_offset = val;
+                   }
+        );
+        makeSlider('posoffsetx', 'Position Offset (x)',  controls.get('transformwindow'),
+                   2, 136, 120, 396, 20,
+                   emitter.pos_offset.x, -128, 128, 1,
+                   function(val:Float, _) {
+                   		emitter.pos_offset.x = val;
+                   }
+        );
+        makeSlider('posoffsety', 'Position Offset (y)',  controls.get('transformwindow'),
+                   2, 158, 120, 396, 20,
+                   emitter.pos_offset.y, -128, 128, 1,
+                   function(val:Float, _) {
+                   		emitter.pos_offset.y = val;
+                   }
+        );
+        makeSlider('pos_randomx', 'Position Random (x)',  controls.get('transformwindow'),
+                   2, 180, 120, 396, 20,
+                   emitter.pos_random.x, -128, 128, 1,
+                   function(val:Float, _) {
+                   		emitter.pos_random.x = val;
+                   }
+        );
+        makeSlider('pos_randomy', 'Position Random (y)',  controls.get('transformwindow'),
+                   2, 202, 120, 396, 20,
+                   emitter.pos_random.y, -128, 128, 1,
+                   function(val:Float, _) {
+                   		emitter.pos_random.y = val;
                    }
         );
 	}
