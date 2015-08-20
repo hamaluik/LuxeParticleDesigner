@@ -43,7 +43,7 @@ class Main extends luxe.Game {
     var controls:StringMap<Control>;
     
     // examples
-	var examples:Array<String> = ['blockyflame', 'fireflies', 'snow'];
+	var examples:Array<String> = ['blockyflame', 'fireflies', 'snow', 'fireworks'];
 	var exampleIDX:Int = -1;
 
 	override function ready() {
@@ -195,7 +195,7 @@ class Main extends luxe.Game {
         );
         makeSlider('emitcount', 'Count',  controls.get('emissionwindow'),
                    2, 48, 120, 396, 20,
-                   emitter.emit_count, 0, 10, 1,
+                   emitter.emit_count, 0, 30, 1,
                    function(val:Float, _) {
                    		emitter.emit_count = Std.int(val);
                    }
