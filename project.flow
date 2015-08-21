@@ -1,8 +1,8 @@
 {
   luxe:{
     window: {
-      width:700,
-      height:700,
+      width:960,
+      height:640,
       title:'Particle Designer',
       fullscreen:true,
       resizable:true,
