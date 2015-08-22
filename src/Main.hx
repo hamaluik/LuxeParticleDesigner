@@ -415,6 +415,7 @@ class Main extends luxe.Game {
 						emitter.end_color = endColour;
 					 }
 		);
+    /*
 		makeDropdown('blend_src', 'SRC Blending',	controls.get('colourwindow'),
 					 2, 202, 396, 20,
 					 blendModes,
@@ -428,7 +429,7 @@ class Main extends luxe.Game {
 					 function(idx:Int, c:Control, e:MouseEvent) {
 					 		 blend_dst = idx;
 					 }, true
-		);
+		);*/
 		
 		
 		controls.set('transformwindow', new mint.Window({
@@ -604,10 +605,11 @@ class Main extends luxe.Game {
 		}));
 	} // initUI
 	
-	inline function makeSlider(name:String, label:String, parent:Control,
+	//inline
+  function makeSlider(name:String, label:String, parent:Control,
 								 x:Float, y:Float, labelW:Float, w:Float, h:Float,
 								 value:Float, min:Float, max:Float, step:Float,
-								 onchange:Float->Float->Void) {
+								 onchange:Float->Null<Float>->Void) {
 		// make a string label describing what this is
 		var label:mint.Label = new mint.Label({
 			name: name + '_label',
@@ -644,6 +646,7 @@ class Main extends luxe.Game {
 		var handleOnChangeTextEdit:Bool = true;
 		textEdit.onchange.listen(function(s:String) {
 			if(!handleOnChangeTextEdit) return;
+      if(s == '') return;
 			var _v:Float = Std.parseFloat(s);
 			if(_v == Math.NaN) _v = 0;
 			slider.value = _v;
@@ -661,7 +664,7 @@ class Main extends luxe.Game {
 	inline function makeDropdown(name:String, label:String, parent:Control,
 								 x:Float, y:Float, w:Float, h:Float,
 								 items:Array<String>,
-								 onchange:Int->Control->MouseEvent->Void,
+								 onchange:Null<Int>->Control->MouseEvent->Void,
 								 prependLabel:Bool) {
 		var dropdown:mint.Dropdown = new mint.Dropdown({
 			parent: parent,
