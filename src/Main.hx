@@ -649,12 +649,14 @@ class Main extends luxe.Game {
       if(s == '') return;
 			var _v:Float = Std.parseFloat(s);
 			if(_v == Math.NaN) _v = 0;
+      _v = luxe.utils.Maths.fixed(_v, 4);
 			slider.value = _v;
 			onchange(slider.value, null);
 		});
 		
 		slider.onchange.listen(function(val:Float, _) {
 			handleOnChangeTextEdit = false;
+      val = luxe.utils.Maths.fixed(val, 4);
 			textEdit.text = '' + val;
 			handleOnChangeTextEdit = true;
 			onchange(val, null);
