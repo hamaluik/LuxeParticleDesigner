@@ -639,17 +639,20 @@ class Main extends luxe.Game {
 			text_size: 12,
 			x: w - 52, y: y, w: 50, h: h,
 			text: '' + value,
-			filter: function(char,future,prev){ return numbers.match(future); }
+			filter: function(char,future,prev){ 
+				return numbers.match(future); 
+			}
 		});
 		controls.set(name + '_indicator', textEdit);
 		
 		var handleOnChangeTextEdit:Bool = true;
 		textEdit.onchange.listen(function(s:String) {
 			if(!handleOnChangeTextEdit) return;
-      if(s == '') return;
+      		if(s == '') return;
+      		if(s.charAt(s.length-1) == '.') return;
 			var _v:Float = Std.parseFloat(s);
 			if(_v == Math.NaN) _v = 0;
-      _v = luxe.utils.Maths.fixed(_v, 4);
+      		_v = luxe.utils.Maths.fixed(_v, 4);
 			slider.value = _v;
 			onchange(slider.value, null);
 		});
